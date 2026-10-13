@@ -1,17 +1,42 @@
-# qbit-template-extension
+# CLAUDE.md
 
-GitHub template repository for scaffolding QQQ "Extension QBits" (infrastructure-level plugins: table customizers, auth, audit, action wrappers). Not a shipping library — consumers click "Use this template" and rename the `com.kingsrook.qbits.example` package.
+Guidance for coding agents working in this repository.
 
-## QQQ 4.0 baseline — 2026-09-24
+## Overview
 
-The historical review below predates the 4.0 migration. This template targets Java 21 and the public QQQ 4.0.0 release from Maven Central. The corrected APIs, license references and actual template commands are in README.md and docs/00-getting-started.md. Preserve the documented multi-instance and scaffold limitations.
+QBit Secured Data provides FULL/REVEALABLE/MASKED/HIDDEN field tiers by role × DataClassification, reveal grants, break-glass access and an access log. Masking is enforced in QQQ core. This is a scaffold only; domain behavior is not implemented yet.
 
-## Knowledge base
+Design: https://github.com/QRun-IO/qqq/blob/develop/docs/SECURED-DATA.md (§5–§8).
 
-Reviewed dossiers for this repo and the wider QQQ platform live in the second-brain vault:
+## Build commands
 
-- Hub / entry point: `R:/Git.Local/KofTwentyTwo/second-brain/knowledge/qqq/qqq-hub.md`
-- This repo's dossier: `R:/Git.Local/KofTwentyTwo/second-brain/knowledge/qqq/repos/qbit-template-extension.md`
-- QBit mechanics refresher: `R:/Git.Local/KofTwentyTwo/second-brain/knowledge/qqq/architecture/metadata-model.md`
+```bash
+./mvnw compile
+./mvnw test
+./mvnw verify  # Checkstyle; JaCoCo: 70% instructions, 90% classes
+./mvnw -q -o verify
+```
 
-Reviewed at commit `e7d4b4d672cc` (branch `main`, 2026-05-21). Known drift as of that review: no `qbit-build-parent` parent pom (org convention), qqq pinned at 0.35.0 on main (0.40.0-SNAPSHOT on develop), README still claims AGPL-3.0 while LICENSE/NOTICE are Apache-2.0, and README references `scripts/customize_template.py` / `actions/ExampleActionCustomizer.java` which do not exist. See the dossier's "Maturity & risks" and "v4.0 impact" sections before modifying the scaffold.
+Use the Maven 3.9.11 wrapper (Java 21); Maven 3.10 cannot read the parent POM. On Windows use `./mvnw.cmd`.
+
+## Architecture
+
+Package: `com.kingsrook.qbits.secureddata`. Entry point: `SecuredDataQBitProducer implements QBitMetaDataProducer<SecuredDataQBitConfig>`. It registers QBit metadata and returns it in a `MetaDataProducerMultiOutput`, with no tables yet. Config exposes `tableMetaDataCustomizer` and an initially empty `Map<String, String> defaultTierByClassification`.
+
+Planned tables: `secured_data_classification`, `secured_data_policy`, `secured_data_reveal_grant`, `secured_data_break_glass`, `secured_data_access_log`.
+
+## Invariants and naming
+
+QQQ core owns masking enforcement. Reveal, break-glass and access logging follow the spec; do not imply this scaffold enforces access. Tables use lowercase snake_case with the `secured_data_` prefix; backend names equal table names. Permissions use the full `secured_data` prefix. Processes are table or record actions, not navigation entries.
+
+## Code style
+
+3-space indent, next-line braces, `return (x);`, flower-box Javadoc on classes and methods, fluent `withX()` setters. Follow `checkstyle/` and `CODE_STYLE.md`.
+
+## Dependencies
+
+Parent: `com.kingsrook:qbit-build-parent:2.0.0`. QQQ BOM: `4.1.0-SNAPSHOT`, pending the RC with fieldaccess hooks. Core and Javalin are compile dependencies; memory/RDBMS backends, frontend-next, H2, JUnit and AssertJ support tests. Do not add qbit-alerts yet.
+
+## Release flow
+
+CircleCI uses `kingsrook/qqq-orb@0.6.8`: develop publishes SNAPSHOTs, release/* publishes RCs, and only `vX.Y.Z` GA tags publish releases. Hotfix branches run tests. RC automation uses workflow_dispatch or a merged develop PR labelled `release:rc`. Feature branches start from develop and return by PR. Never publish manually.
