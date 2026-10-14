@@ -166,6 +166,38 @@ class CoreFieldAccessBridgeIT
 
 
 
+   @Test
+   void revealUnmasksOnlyGrantedRecordAndExpiresInCoreGet() throws Exception
+   {
+      setup();
+      policy("cs_admin", "PII", "REVEALABLE");
+      QRecord row = insert("person", new QRecord().withValue("email", EMAIL));
+      QRecord other = insert("person", new QRecord().withValue("email", "OTHER-CANARY"));
+      GetInput get = new GetInput("person").withPrimaryKey(row.getValue("id"));
+      assertThat(new GetAction().execute(get).getRecord().getValueString("email")).isNotEqualTo(EMAIL);
+      var reveal = new com.kingsrook.qbits.secureddata.reveal.RevealService().reveal("person", row.getValue("id"), "email", "Investigating", null);
+      assertThat(reveal.value()).isEqualTo(EMAIL);
+      assertThat(new GetAction().execute(get).getRecord().getValueString("email")).isEqualTo(EMAIL);
+      assertThat(new GetAction().execute(new GetInput("person").withPrimaryKey(other.getValue("id"))).getRecord().getValueString("email")).isNotEqualTo("OTHER-CANARY");
+      SecuredDataTestSupport.CLOCK.now = SecuredDataTestSupport.NOW.plusSeconds(300);
+      assertThat(new GetAction().execute(get).getRecord().getValueString("email")).isNotEqualTo(EMAIL);
+   }
+
+   @Test
+   void revealPreservesCoreRecordLockDenial() throws Exception
+   {
+      QInstance instance = setup();
+      policy("cs_admin", "PII", "REVEALABLE");
+      QRecord row = insert("person", new QRecord().withValue("email", EMAIL).withValue("notes", "tenant-a"));
+      instance.addSecurityKeyType(new com.kingsrook.qqq.backend.core.model.metadata.security.QSecurityKeyType().withName("tenant"));
+      instance.getTable("person").withRecordSecurityLock(new com.kingsrook.qqq.backend.core.model.metadata.security.RecordSecurityLock().withSecurityKeyType("tenant").withFieldName("notes"));
+      QContext.getQSession().withSecurityKeyValue("tenant", "tenant-b");
+      assertThat(new GetAction().execute(new GetInput("person").withPrimaryKey(row.getValue("id"))).getRecord()).isNull();
+      assertThatThrownBy(() -> new com.kingsrook.qbits.secureddata.reveal.RevealService().reveal("person", row.getValue("id"), "email", "Investigating", null))
+         .isInstanceOf(com.kingsrook.qqq.backend.core.exceptions.QNotFoundException.class);
+      assertThat(com.kingsrook.qbits.secureddata.support.SystemWrites.query(SecuredDataTables.REVEAL_GRANT, new QQueryFilter())).isEmpty();
+   }
+
    /*******************************************************************************
     ** Search.
     *******************************************************************************/

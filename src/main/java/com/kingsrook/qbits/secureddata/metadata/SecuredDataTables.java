@@ -120,12 +120,7 @@ public final class SecuredDataTables
    private static QFieldMetaData field(String name, QFieldType type)
    {
       QFieldMetaData field = new QFieldMetaData(name, type).withBackendName(name).withLabel(name.replace('_', ' '));
-      if("field_name".equals(name))
-      {
-         field.withPossibleValueSourceFilter(new com.kingsrook.qqq.backend.core.model.actions.tables.query.QQueryFilter()
-            .withCriteria(new com.kingsrook.qqq.backend.core.model.actions.tables.query.QFilterCriteria("table_name",
-               com.kingsrook.qqq.backend.core.model.actions.tables.query.QCriteriaOperator.EQUALS, "${input.table_name}")));
-      }
+      // TODO(contingent): dependsOn("table_name") once the core RC has it
       return (field);
    }
 
@@ -199,7 +194,7 @@ public final class SecuredDataTables
          .withField(field("table_name", QFieldType.STRING).withMaxLength(255).withIsRequired(true).withPossibleValueSourceName("tables"))
          .withField(field("record_id", QFieldType.STRING).withMaxLength(255).withIsRequired(true))
          .withField(field("field_name", QFieldType.STRING).withMaxLength(255).withIsRequired(true).withPossibleValueSourceName("secured_data_fields"))
-         .withField(field("reason", QFieldType.STRING).withMaxLength(255))
+         .withField(field("reason", QFieldType.STRING).withMaxLength(500))
          .withField(field("reason_text", QFieldType.TEXT))
          .withField(field("granted_at", QFieldType.DATE_TIME).withIsRequired(true))
          .withField(field("expires_at", QFieldType.DATE_TIME).withIsRequired(true))
@@ -220,7 +215,7 @@ public final class SecuredDataTables
       QTableMetaData table = base(config, BREAK_GLASS, "Break-glass session")
          .withField(field("user_id", QFieldType.STRING).withMaxLength(255).withIsRequired(true))
          .withField(field("user_name", QFieldType.STRING).withMaxLength(255))
-         .withField(field("reason", QFieldType.STRING).withMaxLength(255))
+         .withField(field("reason", QFieldType.STRING).withMaxLength(500))
          .withField(field("reason_text", QFieldType.TEXT))
          .withField(field("classification_ceiling", QFieldType.STRING).withMaxLength(255).withDefaultValue("PHI").withPossibleValueSourceName("secured_data_classification"))
          .withField(field("table_name", QFieldType.STRING).withMaxLength(255).withPossibleValueSourceName("tables"))
@@ -251,7 +246,7 @@ public final class SecuredDataTables
          .withField(field("field_name", QFieldType.TEXT))
          .withField(field("record_count", QFieldType.INTEGER))
          .withField(field("action_name", QFieldType.STRING).withMaxLength(255))
-         .withField(field("reason", QFieldType.STRING).withMaxLength(255))
+         .withField(field("reason", QFieldType.STRING).withMaxLength(500))
          .withField(field("reason_text", QFieldType.TEXT))
          .withField(field("client_channel", QFieldType.STRING).withMaxLength(255))
          .withField(field("outcome", QFieldType.STRING).withMaxLength(255).withPossibleValueSourceName("secured_data_outcome"))

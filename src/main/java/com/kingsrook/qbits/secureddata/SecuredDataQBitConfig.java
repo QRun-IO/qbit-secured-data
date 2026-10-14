@@ -43,6 +43,7 @@ public class SecuredDataQBitConfig implements QBitConfig
 {
    private static final byte[] JVM_KEY = new SecureRandom().generateSeed(32);
    private Map<String, String> defaultTierByClassification = new HashMap<>(Map.of("CONFIDENTIAL", "FULL", "PII", "MASKED", "PHI", "MASKED"));
+   private String schedulerName;
    private String backendName = "memory";
    private Clock clock = Clock.systemUTC();
    private int accessLogQueueCapacity = 4096;
@@ -57,6 +58,23 @@ public class SecuredDataQBitConfig implements QBitConfig
    private MetaDataCustomizerInterface<QTableMetaData> tableMetaDataCustomizer = null;
 
 
+
+   /*******************************************************************************
+    ** Scheduler to run the once-per-minute break-glass expiry job.
+    *******************************************************************************/
+   public String getSchedulerName()
+   {
+      return (schedulerName);
+   }
+
+   /*******************************************************************************
+    ** Configure the host scheduler; null leaves manual scheduling to the host.
+    *******************************************************************************/
+   public SecuredDataQBitConfig withSchedulerName(String schedulerName)
+   {
+      this.schedulerName = schedulerName;
+      return (this);
+   }
 
    /*******************************************************************************
     ** Get backendName.

@@ -66,6 +66,15 @@ public class SecuredDataResolver implements FieldAccessResolverInterface
    private final SecuredDataRuntime runtime;
    private final byte[] fingerprintKey;
    private final ThreadLocal<Boolean> resolving = ThreadLocal.withInitial(() -> false);
+   private final Map<String, RevealCache> reveals = new HashMap<>();
+
+   /*******************************************************************************
+    ** Bounded per-user grant cache, with exact read-time expiry.
+    *******************************************************************************/
+   private record RevealCache(Instant until, List<QRecord> rows)
+   {
+   }
+
    private long cachedVersion;
    private List<QRecord> policies = List.of();
    private final Map<String, UserState> users = new HashMap<>();
@@ -268,6 +277,17 @@ public class SecuredDataResolver implements FieldAccessResolverInterface
 
 
    /*******************************************************************************
+    ** Granting rows only: channel rows cap tiers and never grant reveal settings.
+    *******************************************************************************/
+   public List<QRecord> revealPolicies(QTableMetaData table, String fieldName)
+   {
+      return (matching(table, SecuredDataClassifications.effective(table, fieldName)).stream()
+         .filter(row -> blank(row.getValueString("client_channel")) && "REVEALABLE".equals(row.getValueString("tier"))).toList());
+   }
+
+
+
+   /*******************************************************************************
     ** Refresh policy rows once per version and matched state per relevant permissions.
     *******************************************************************************/
    private synchronized UserState state()
@@ -312,7 +332,7 @@ public class SecuredDataResolver implements FieldAccessResolverInterface
    /*******************************************************************************
     ** Exact expiry is checked at use time, independent of the future expiry job.
     *******************************************************************************/
-   private List<QRecord> activeBreakGlass()
+   public List<QRecord> activeBreakGlass()
    {
       Instant now = runtime.config().getClock().instant();
       return (state().breakGlass().stream().filter(row -> "ACTIVE".equals(row.getValueString("status")))
@@ -382,12 +402,39 @@ public class SecuredDataResolver implements FieldAccessResolverInterface
    @Override
    public boolean isRevealActive(String tableName, String fieldName, Serializable primaryKey)
    {
-      return (SystemWrites.query(SecuredDataTables.REVEAL_GRANT, new QQueryFilter()
-         .withCriteria(new QFilterCriteria("user_id", QCriteriaOperator.EQUALS, userId()))
-         .withCriteria(new QFilterCriteria("table_name", QCriteriaOperator.EQUALS, tableName))
-         .withCriteria(new QFilterCriteria("field_name", QCriteriaOperator.EQUALS, fieldName))
-         .withCriteria(new QFilterCriteria("record_id", QCriteriaOperator.EQUALS, String.valueOf(primaryKey)))
-         .withCriteria(new QFilterCriteria("expires_at", QCriteriaOperator.GREATER_THAN, runtime.config().getClock().instant()))).size() > 0);
+      synchronized(reveals)
+      {
+         String user = userId();
+         Instant now = runtime.config().getClock().instant();
+         RevealCache cached = reveals.get(user);
+         if(cached == null || !cached.until().isAfter(now))
+         {
+            if(reveals.size() >= 1024)
+            {
+               reveals.clear();
+            }
+            cached = new RevealCache(now.plusSeconds(5), SystemWrites.query(SecuredDataTables.REVEAL_GRANT, new QQueryFilter()
+               .withCriteria(new QFilterCriteria("user_id", QCriteriaOperator.EQUALS, user))
+               .withCriteria(new QFilterCriteria("expires_at", QCriteriaOperator.GREATER_THAN, now))));
+            reveals.put(user, cached);
+         }
+         return (cached.rows().stream().anyMatch(row -> tableName.equals(row.getValueString("table_name"))
+            && fieldName.equals(row.getValueString("field_name")) && String.valueOf(primaryKey).equals(row.getValueString("record_id"))
+            && row.getValueInstant("expires_at").isAfter(now)));
+      }
+   }
+
+
+
+   /*******************************************************************************
+    ** Publish a newly created grant to all sessions on this instance immediately.
+    *******************************************************************************/
+   public void invalidateReveals()
+   {
+      synchronized(reveals)
+      {
+         reveals.clear();
+      }
    }
 
 

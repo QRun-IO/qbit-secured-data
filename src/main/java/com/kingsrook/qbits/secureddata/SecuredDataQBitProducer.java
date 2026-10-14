@@ -156,10 +156,12 @@ public class SecuredDataQBitProducer implements QBitMetaDataProducer<SecuredData
       }
       SecuredDataTables.MAIN.forEach(name -> app.withChild(tables.get(name)));
       output.add(app);
+      com.kingsrook.qbits.secureddata.processes.BreakGlassProcesses.processes(qBitConfig).forEach(output::add);
       output.add(SecuredDataTables.revealsJoin());
       output.add(SecuredDataTables.revealsWidget());
       output.addSelfToInstance(qInstance);
       CoreMetadataBridge.register(qInstance);
+      com.kingsrook.qbits.secureddata.support.UiApiBridge.register(qInstance);
       if(qBitConfig.getNameHeuristics())
       {
          seedHeuristics(qInstance);

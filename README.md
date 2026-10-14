@@ -1,6 +1,6 @@
 # QBit Secured Data
 
-Phase (b) of [SECURED-DATA](https://github.com/QRun-IO/qqq/blob/develop/docs/SECURED-DATA.md): classification overrides, policy resolution, enumeration guardrails, and value-free access logging. QQQ core owns masking and query enforcement. Reveal/Start/End operations, home widgets, retention and audit-value protection are later phases.
+Phases (b) and (c) of [SECURED-DATA](https://github.com/QRun-IO/qqq/blob/develop/docs/SECURED-DATA.md): classification overrides, policy resolution, enumeration guardrails, and value-free access logging. QQQ core owns masking and query enforcement. Reveal and break-glass services and actions are implemented. Home widgets, retention and audit-value protection remain later phases.
 
 ## Compatibility
 
@@ -107,6 +107,32 @@ One daemon worker drains a bounded queue as a system session. Enqueueing does no
 
 Flagged rows raise the optional alerts producer signal `secured_data.enumeration`, deduplicated by `secured_data.enumeration:<user>:<table>.<field>:<UTC date>`. RC.5 already provides `QAlerts`; without an installed sink it logs the signal. Its catalog validator rejects underscores in type names, so this mandated type is sent through the producer without catalog registration until that core restriction is reconciled. No values or fingerprints are sent to the alert sink.
 
+## Reveal and break-glass
+
+`new RevealService().options(tableName, fieldName)` describes the reason choices, free-text rules, duration and remaining allowance. `reveal(tableName, primaryKey, fieldName, reason, reasonText)` performs an explicitly permission-enforced Get as the caller before a system read. It returns `value`, core-formatted `displayValue`, `expiresAt`, and `revealId`. Grants and their linked audit rows are system-written; no raw value is copied into the access log.
+
+The effective tier must be REVEALABLE. The chosen granting policy is the row with the highest daily cap (null means unlimited), then the longest duration, then lowest lexical id. Channel-only cap rows never grant reveal settings. A feature/default-based REVEALABLE tier with no granting row uses five minutes and an allowed free-text reason. Limits count grants across all tables for the user in the UTC day. Reason and reason text each have a 500-character limit. A required explanation is accepted alongside a listed reason even if arbitrary free-text reasons are disabled. Capped requests record `REVEAL_DENIED/CAPPED` and raise `secured_data.reveal_capped`; assistant-channel requests record `REVEAL_DENIED/DENIED` and return 403.
+
+Grant lookups cache identifiers and expiration times for at most five seconds per user, check expiration on each use, and invalidate immediately after a new grant. The service serializes cap-check/write and duplicate-session checks within one runtime. Multi-replica deployments must coordinate these operations externally for a globally atomic cap and single active session; the in-process lock is not a distributed lock.
+
+`secured_data_break_glass_start` is a table action, labeled **Start break-glass**, requiring `secured_data_break_glass_start.hasAccess`. Its reason must contain 20-500 characters; duration defaults to 60 minutes and accepts 1-480. Table scope is optional and classification ceiling defaults to PHI. `secured_data_break_glass_end` is a record action with the standard streamed ETL Review/Result screens; ownership/admin authorization is checked at review and again at execution. Neither action is a navigation entry. The current admin-only activity table permissions remain in place; an owner can invoke End using the session id returned by status without obtaining admin access to activity tables.
+
+Start raises `secured_data.break_glass` at core's `HIGH` mapping (`AlertSeverity.ERROR`). End and expiry resolve the same per-session alert. Bell delivery targets holders of `secured_data.admin` through core's optional notification SPI #1125. RC.5 and the installed secure-data snapshot lack that SPI: a clear warning is logged. TODO: switch to a direct notification call when #1125 ships and verify against a notification-capable core.
+
+Configure `.withSchedulerName("yourScheduler")` to register the hidden `secured_data_break_glass_expire` process every minute. Without a scheduler, the host must invoke that process itself. Tier resolution checks expiration independently, so delayed maintenance cannot prolong access. `new StatusService().status()` returns the caller's active session or null, grants used today, and the allowance for each readable REVEALABLE field.
+
+## UI API extension
+
+The `secured-data` extension is version **1.0.0**:
+
+- `POST /qqq/v1/qbit/secured-data/reveal`
+- `GET /qqq/v1/qbit/secured-data/reveal/options?tableName=&fieldName=`
+- `GET /qqq/v1/qbit/secured-data/status`
+
+Build with `-Duiapi=true` and a compatible core to compile `src/main/java-uiapi` and `src/test/java-uiapi`. The producer registers the extension only when both its classes and core's extension metadata exist. The committed contract is [secured-data.yaml](src/main/resources/openapi/qqq-v1/secured-data.yaml); regenerate intentionally with `-Dqqq.uiApi.regenerate=true`. The supplied core exposes `UiApiContract.check`, so a local test-only `UiApiContractAssertions` adapter supplies the documented assertion facade. All UI API roots and adapters are `STAND-IN(core=QRun-IO/qqq#1128, removeBy=RC.6)` and fold into the normal roots at RC.6. The core OpenAPI model cannot mark object properties required; the request schema documents required properties and the handler validates them.
+
+The classification field picker uses CUSTOM possible values, reading `table_name` or `tableName` from the form's other values. It returns only the selected readable table's labeled fields, returns none without a selection, and rejects an unknown table. TODO: add `dependsOn("table_name")` when the core metadata API supports it.
+
 ## Configuration
 
 | Fluent option | Default / purpose |
@@ -124,6 +150,7 @@ Flagged rows raise the optional alerts producer signal `secured_data.enumeration
 | `withMissAlertConsecutive(int)` | 5; zero disables |
 | `withDistinctValueAlert(int)` | 15; zero disables |
 | `withMinEntropyEnabled(boolean)` | true |
+| `withSchedulerName(String)` | Host scheduler for the 60-second break-glass expiry job; null means host-managed invocation |
 | `withClock(Clock)` | UTC system clock; injectable for deterministic expiry tests |
 
 Configure before producing the QBit; runtime infrastructure and HMAC keys are captured at startup. Classification/policy/break-glass lookups always run as system, with a thread-local recursion guard. No reveal values are cached.
@@ -131,15 +158,15 @@ Configure before producing the QBit; runtime infrastructure and HMAC keys are ca
 ## Build and tests
 
 ```powershell
-./mvnw.cmd -q -o verify
-./mvnw.cmd -q -o -Dqqq.snapshot.version=4.1.0-SECUREDATA-SNAPSHOT verify
+./mvnw.cmd -q -o clean verify
+./mvnw.cmd -q -o clean verify -Dqqq.snapshot.version=4.1.0-SECUREDATA-SNAPSHOT -Duiapi=true
 ```
 
 The direct suite uses memory and H2. `CoreFieldAccessBridgeIT` is included by Surefire and uses JUnit assumptions to skip unless the actual core resolver metadata is present. With the installed core snapshot it exercises Query/Get, policy tiers, masking, exact matches and outcomes, sorting denial, rate/entropy refusal and the assistant wall. Checkstyle and JaCoCo remain 70% instructions / 90% classes; stand-ins are not excluded.
 
 ## Remaining phases
 
-RC.6 migration removes temporary types and reflection. Phase (c) adds Reveal and Start/End break-glass operations and expiry scheduling; this phase already reads active grants/sessions. Phase (e) adds the app home and broader anomaly rules. Retention, wipe and audit-value protection remain phases (f)/(g).
+RC.6 migration removes temporary types and reflection. Phase (e) adds the app home and broader anomaly rules. Retention, wipe and audit-value protection remain phases (f)/(g).
 
 ## License
 

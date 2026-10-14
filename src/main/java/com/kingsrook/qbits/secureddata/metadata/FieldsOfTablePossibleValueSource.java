@@ -58,9 +58,21 @@ public class FieldsOfTablePossibleValueSource implements QCustomPossibleValuePro
    public List<QPossibleValue<String>> search(SearchPossibleValueSourceInput input) throws QException
    {
       Object tableName = input.getOtherValues() == null ? null : input.getOtherValues().get("table_name");
+      if(tableName == null && input.getOtherValues() != null)
+      {
+         tableName = input.getOtherValues().get("tableName");
+      }
       List<QPossibleValue<String>> values = new ArrayList<>();
-      QTableMetaData table = tableName == null ? null : QContext.getQInstance().getTable(tableName.toString());
-      if(table != null && PermissionsHelper.hasTablePermission(new GetInput(table.getName()), table.getName(), TablePermissionSubType.READ))
+      if(tableName == null || tableName.toString().isBlank())
+      {
+         return (values);
+      }
+      QTableMetaData table = QContext.getQInstance().getTable(tableName.toString());
+      if(table == null)
+      {
+         throw (new QException("Unknown table."));
+      }
+      if(PermissionsHelper.hasTablePermission(new GetInput(table.getName()), table.getName(), TablePermissionSubType.READ))
       {
          table.getFields().values().forEach(field -> values.add(new QPossibleValue<>(field.getName(), field.getLabel())));
       }
