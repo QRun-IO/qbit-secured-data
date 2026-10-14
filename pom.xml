@@ -27,7 +27,7 @@
       <maven.compiler.source>21</maven.compiler.source>
       <maven.compiler.target>21</maven.compiler.target>
       <jacoco.version>0.8.15</jacoco.version>
-      <h2.version>2.2.224</h2.version>
+      <h2.version>2.5.252</h2.version>
    </properties>
 
    <parent>
@@ -128,7 +128,7 @@
          <plugin>
             <groupId>org.apache.maven.plugins</groupId>
             <artifactId>maven-checkstyle-plugin</artifactId>
-            <version>3.3.1</version>
+            <version>3.6.0</version>
             <dependencies>
                <dependency>
                   <groupId>com.puppycrawl.tools</groupId>
@@ -232,7 +232,7 @@
          </plugin><plugin>
             <groupId>org.codehaus.mojo</groupId>
             <artifactId>build-helper-maven-plugin</artifactId>
-            <version>3.6.1</version>
+            <version>3.6.2</version>
             <executions>
                <execution><id>uiapi-source</id><phase>generate-sources</phase><goals><goal>add-source</goal></goals>
                   <configuration><sources><source>src/main/java-uiapi</source></sources></configuration>
