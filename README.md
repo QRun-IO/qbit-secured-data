@@ -4,7 +4,7 @@ Phases (b), (c), (e) and (f) of [SECURED-DATA](https://github.com/QRun-IO/qqq/bl
 
 ## Compatibility
 
-Java 21, Maven wrapper 3.9.11, and the first **QQQ RC that includes #1172 and #1182 (RC.7 expected)**. Until that RC is available, the build uses the locally installed `4.1.0-SECUREDATA-SNAPSHOT`.
+Java 21, Maven wrapper 3.9.11, and **QQQ 4.1.0-RC.7** or later (it ships field access #1172 and audit value protection #1182).
 
 Core classifications, AI metadata, client channels, table-feature permissions and UI API extension points are used directly. The UI API and its contract test are part of the main build; the contract test calls `UiApiContract` directly.
 

@@ -4,11 +4,11 @@ All notable changes are documented here, following [Keep a Changelog](https://ke
 
 ## [Unreleased]
 
-### Changed � direct core field access and audit protection
+### Changed — direct core field access and audit protection
 - Remove all #1172/#1182 stand-ins and reflective bridges; use core field-access, classified-value token, audit protection, wipe flag and shredded-event APIs directly.
 - Register the resolver, key source and audit protector through core supplemental metadata.
 - Run core field-access integration and retention proof tests unconditionally.
-- Temporarily pin QQQ to `4.1.0-SECUREDATA-SNAPSHOT`, pending the first RC with #1172 and #1182 (RC.7 expected).
+- Pin QQQ to `4.1.0-RC.7`, which ships field access (#1172) and audit value protection (#1182); all core stand-ins and reflective bridges are removed.
 
 ### Changed — RC.6 migration
 - Pin QQQ to 4.1.0-RC.6; use released classification, client-channel and table-feature APIs directly.
@@ -21,7 +21,7 @@ All notable changes are documented here, following [Keep a Changelog](https://ke
 - Atomic wipe batches (fields, markers, key deletions, audits, access log and run row in one rollback-capable transaction), per-record and per-table legal holds, a Review/Result "Run wipe now" process and a daily scheduled run.
 - Per-record-field AES-GCM wrapped DEKs (AAD-bound) for crypto-shredding of audit tokens, `CHANGED_ONLY` audit treatment, and the audit-value protector.
 - App-home warning when known backup retention exceeds a rule's `age_days`; `withBackupRetentionDays` and `withArchiveSink` options; README retention section and the backups residual risk.
-- Tests: all actions, holds, rollback, Review/Result, schedule, permissions, wrap/unwrap, and (on the SECUREDATA snapshot) the section 15 canary and wipe-proof tests.
+- Tests: all actions, holds, rollback, Review/Result, schedule, permissions, wrap/unwrap, and the section 15 canary and wipe-proof tests.
 
 ### Fixed
 - The key source returned a DEK array it then zeroed; it now returns copies, with a regression test.
