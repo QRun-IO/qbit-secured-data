@@ -8,7 +8,7 @@ Java 21, Maven wrapper 3.9.11, **QQQ 4.1.0-RC.6**.
 
 RC.6 supplies core classifications, AI metadata, client channels, table-feature permissions and the UI API extension points. These are used directly; the UI API and its contract test are part of the main build. The installed middleware jar provides `UiApiContract`, but no `UiApiContractAssertions` facade, so the contract test calls that released API directly.
 
-Field access (#1172) and audit-value protection (#1182) are not in RC.6. Field-access stand-ins and `CoreFieldAccessBridge` remain marked for RC.7. RC.6 **does not enforce field tiers**. Integration tests can use `4.1.0-SECUREDATA-SNAPSHOT`.
+Field access (#1172) and audit-value protection (#1182) are not in RC.6. Field-access stand-ins and `CoreFieldAccessBridge` remain until the first QQQ RC that ships both #1172 and #1182 (expected RC.8). RC.6 **does not enforce field tiers**. Integration tests can use `4.1.0-SECUREDATA-SNAPSHOT`.
 
 ## Install and register
 
@@ -243,11 +243,11 @@ Each is read from a JVM property or the environment and is never logged. Losing 
 
 ### Core hooks
 
-Audit-value protection (QRun-IO/qqq#1182) and the wipe audit flag need core classes that are not in RC.6. On RC.6 the qbit uses marked stand-ins (`removeBy=RC.7`), writes value-free wipe audit details itself, and core does not tokenise ordinary audits. Run the build with `-Dqqq.snapshot.version=4.1.0-SECUREDATA-SNAPSHOT` to exercise the real hooks, including the section 15 canary and wipe-proof tests (`RetentionProofTest`), which skip themselves when the hooks are absent.
+Audit-value protection (QRun-IO/qqq#1182) and the wipe audit flag need core classes that are not in RC.6. On RC.6 the qbit uses marked stand-ins (`removeBy=RC.8`), writes value-free wipe audit details itself, and core does not tokenise ordinary audits. Run the build with `-Dqqq.snapshot.version=4.1.0-SECUREDATA-SNAPSHOT` to exercise the real hooks, including the section 15 canary and wipe-proof tests (`RetentionProofTest`), which skip themselves when the hooks are absent.
 
 ## Remaining phases
 
-RC.6 migration is complete; field-access compatibility types remain until RC.7. Phase (g) remains.
+RC.6 migration is complete; field-access and audit-token compatibility types remain until RC.8.
 
 ## License
 

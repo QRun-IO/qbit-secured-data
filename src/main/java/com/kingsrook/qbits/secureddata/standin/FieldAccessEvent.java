@@ -30,7 +30,7 @@ import java.util.List;
 /*******************************************************************************
  ** Value-free audit notification. Primary key samples contain at most 50 keys.
  *******************************************************************************/
-// STAND-IN(core=QRun-IO/qqq#1172, removeBy=RC.7): copy of com.kingsrook.qqq.backend.core.actions.permissions.fieldaccess.FieldAccessEvent; delete when the pin moves to RC.7.
+// STAND-IN(core=QRun-IO/qqq#1172, removeBy=RC.8): copy of com.kingsrook.qqq.backend.core.actions.permissions.fieldaccess.FieldAccessEvent; delete when the pin moves to the first QQQ RC with #1172 and #1182 (RC.8).
 public class FieldAccessEvent
 {
    private FieldAccessEventType type;
