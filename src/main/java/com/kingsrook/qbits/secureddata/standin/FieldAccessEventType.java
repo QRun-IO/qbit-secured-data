@@ -26,7 +26,7 @@ package com.kingsrook.qbits.secureddata.standin;
 /*******************************************************************************
  ** Kinds of field access reported to the resolver.
  *******************************************************************************/
-// STAND-IN(core=QRun-IO/qqq#TBD, removeBy=RC.6): copy of com.kingsrook.qqq.backend.core.actions.permissions.fieldaccess.FieldAccessEventType; delete when the pin moves to RC.6.
+// STAND-IN(core=QRun-IO/qqq#1172, removeBy=RC.6): copy of com.kingsrook.qqq.backend.core.actions.permissions.fieldaccess.FieldAccessEventType; delete when the pin moves to RC.6.
 public enum FieldAccessEventType
 {
    VIEW, EXACT_MATCH_FILTER, DENIED

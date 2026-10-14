@@ -30,7 +30,7 @@ import com.kingsrook.qqq.backend.core.model.metadata.tables.QTableMetaData;
 /*******************************************************************************
  ** Session-aware policy, reveal grants and value-free access notifications.
  *******************************************************************************/
-// STAND-IN(core=QRun-IO/qqq#TBD, removeBy=RC.6): copy of com.kingsrook.qqq.backend.core.actions.permissions.fieldaccess.FieldAccessResolverInterface; delete when the pin moves to RC.6.
+// STAND-IN(core=QRun-IO/qqq#1172, removeBy=RC.6): copy of com.kingsrook.qqq.backend.core.actions.permissions.fieldaccess.FieldAccessResolverInterface; delete when the pin moves to RC.6.
 public interface FieldAccessResolverInterface
 {
    /*******************************************************************************

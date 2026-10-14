@@ -26,7 +26,7 @@ package com.kingsrook.qbits.secureddata.standin;
 /*******************************************************************************
  ** A resolver decision; the reason must never contain a field value.
  *******************************************************************************/
-// STAND-IN(core=QRun-IO/qqq#TBD, removeBy=RC.6): copy of com.kingsrook.qqq.backend.core.actions.permissions.fieldaccess.FieldAccessDecision; delete when the pin moves to RC.6.
+// STAND-IN(core=QRun-IO/qqq#1172, removeBy=RC.6): copy of com.kingsrook.qqq.backend.core.actions.permissions.fieldaccess.FieldAccessDecision; delete when the pin moves to RC.6.
 public record FieldAccessDecision(FieldAccessTier tier, FieldMaskStyle maskStyle, String reason, boolean exactMatchAllowed)
 {
    public static final FieldAccessDecision FULL = new FieldAccessDecision(FieldAccessTier.FULL, null, null);
