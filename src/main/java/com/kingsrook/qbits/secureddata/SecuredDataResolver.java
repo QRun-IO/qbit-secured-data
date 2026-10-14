@@ -36,14 +36,14 @@ import java.util.Objects;
 import java.util.TreeSet;
 import com.kingsrook.qbits.secureddata.metadata.SecuredDataTables;
 import com.kingsrook.qbits.secureddata.permissions.SecuredDataPermissions;
-import com.kingsrook.qbits.secureddata.standin.FieldAccessDecision;
-import com.kingsrook.qbits.secureddata.standin.FieldAccessEvent;
-import com.kingsrook.qbits.secureddata.standin.FieldAccessResolverInterface;
-import com.kingsrook.qbits.secureddata.standin.FieldAccessTier;
-import com.kingsrook.qbits.secureddata.standin.FieldMaskStyle;
 import com.kingsrook.qbits.secureddata.support.SecuredDataMetadata;
 import com.kingsrook.qbits.secureddata.support.SystemWrites;
 import com.kingsrook.qqq.backend.core.actions.ai.DataClassification;
+import com.kingsrook.qqq.backend.core.actions.permissions.fieldaccess.FieldAccessDecision;
+import com.kingsrook.qqq.backend.core.actions.permissions.fieldaccess.FieldAccessEvent;
+import com.kingsrook.qqq.backend.core.actions.permissions.fieldaccess.FieldAccessResolverInterface;
+import com.kingsrook.qqq.backend.core.actions.permissions.fieldaccess.FieldAccessTier;
+import com.kingsrook.qqq.backend.core.actions.permissions.fieldaccess.FieldMaskStyle;
 import com.kingsrook.qqq.backend.core.context.QContext;
 import com.kingsrook.qqq.backend.core.exceptions.QPermissionDeniedException;
 import com.kingsrook.qqq.backend.core.model.actions.tables.query.QCriteriaOperator;
@@ -56,7 +56,6 @@ import com.kingsrook.qqq.backend.core.model.metadata.tables.QTableMetaData;
 import com.kingsrook.qqq.backend.core.model.session.QSession;
 import com.kingsrook.qqq.backend.core.model.session.QSystemUserSession;
 import com.kingsrook.qqq.backend.core.utils.JsonUtils;
-
 
 /*******************************************************************************
  ** Seven-step policy resolution with instance-versioned, bounded per-user state.

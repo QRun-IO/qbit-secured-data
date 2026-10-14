@@ -33,7 +33,6 @@ import com.kingsrook.qqq.backend.module.rdbms.model.metadata.RDBMSBackendMetaDat
 import com.kingsrook.qqq.backend.module.rdbms.model.metadata.RDBMSTableBackendDetails;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.Test;
-
 import static com.kingsrook.qbits.secureddata.SecuredDataTestSupport.CLOCK;
 import static com.kingsrook.qbits.secureddata.SecuredDataTestSupport.RUNTIMES;
 import static com.kingsrook.qbits.secureddata.SecuredDataTestSupport.base;
@@ -97,8 +96,8 @@ class SecuredDataDdlTest
          classification(null, "PII");
          policy("cs_admin", "PII", "REVEALABLE");
          assertThat(SecuredDataRuntime.current().resolver().resolve(instance.getTable("person"), instance.getTable("person").getField("email")).tier().name()).isEqualTo("REVEALABLE");
-         SecuredDataRuntime.current().logger().onAccess(SecuredDataAccessLoggerTest.event(com.kingsrook.qbits.secureddata.standin.FieldAccessEventType.EXACT_MATCH_FILTER,
-            com.kingsrook.qbits.secureddata.standin.FieldAccessOutcome.MATCH, "hmac"));
+         SecuredDataRuntime.current().logger().onAccess(SecuredDataAccessLoggerTest.event(com.kingsrook.qqq.backend.core.actions.permissions.fieldaccess.FieldAccessEventType.EXACT_MATCH_FILTER,
+            com.kingsrook.qqq.backend.core.actions.permissions.fieldaccess.FieldAccessOutcome.MATCH, "hmac"));
          SecuredDataRuntime.current().logger().flush();
          assertThat(logs()).extracting(row -> row.getValueString("event_type")).containsExactly("CLASSIFICATION_CHANGE", "POLICY_CHANGE", "EXACT_MATCH_FILTER");
          // Equal timestamps must be counted by SQL as well as the memory backend.

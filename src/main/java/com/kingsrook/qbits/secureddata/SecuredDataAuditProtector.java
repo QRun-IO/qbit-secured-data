@@ -22,10 +22,11 @@ package com.kingsrook.qbits.secureddata;
 
 import java.io.Serializable;
 import com.kingsrook.qbits.secureddata.retention.RetentionRules;
-import com.kingsrook.qbits.secureddata.standin.AuditValueProtectorInterface;
-import com.kingsrook.qbits.secureddata.standin.DMLType;
-import com.kingsrook.qbits.secureddata.standin.ProtectedAuditValues;
 import com.kingsrook.qqq.backend.core.actions.ai.DataClassification;
+import com.kingsrook.qqq.backend.core.actions.audits.AuditValueProtectorInterface;
+import com.kingsrook.qqq.backend.core.actions.audits.DMLAuditAction.DMLType;
+import com.kingsrook.qqq.backend.core.actions.audits.ProtectedAuditValues;
+import com.kingsrook.qqq.backend.core.actions.permissions.fieldaccess.ClassifiedValueTokens;
 import com.kingsrook.qqq.backend.core.model.metadata.fields.QFieldMetaData;
 import com.kingsrook.qqq.backend.core.model.metadata.tables.QTableMetaData;
 
@@ -56,7 +57,7 @@ public final class SecuredDataAuditProtector implements AuditValueProtectorInter
    {
       boolean changed = RetentionRules.changedOnly(table.getName(), field.getName());
       String message = (oldValue == null ? "Set " : newValue == null ? "Removed " : "Changed ") + field.getLabel();
-      return (new ProtectedAuditValues(oldValue == null ? null : changed ? "changed:v1" : CoreAuditBridge.token(table, field, pk, oldValue),
-         newValue == null ? null : changed ? "changed:v1" : CoreAuditBridge.token(table, field, pk, newValue), message));
+      return (new ProtectedAuditValues(oldValue == null ? null : changed ? "changed:v1" : ClassifiedValueTokens.forRecordField(table, field, pk, oldValue),
+         newValue == null ? null : changed ? "changed:v1" : ClassifiedValueTokens.forRecordField(table, field, pk, newValue), message));
    }
 }

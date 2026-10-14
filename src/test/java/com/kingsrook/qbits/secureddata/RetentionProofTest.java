@@ -35,9 +35,9 @@ import java.util.Map;
 import java.util.Optional;
 import com.kingsrook.qbits.secureddata.metadata.SecuredDataTables;
 import com.kingsrook.qbits.secureddata.retention.WipeService;
-import com.kingsrook.qbits.secureddata.standin.ClassifiedValueKeySource.KeyAndId;
-import com.kingsrook.qbits.secureddata.standin.ClassifiedValueTokens;
 import com.kingsrook.qbits.secureddata.support.SystemWrites;
+import com.kingsrook.qqq.backend.core.actions.permissions.fieldaccess.ClassifiedValueKeySource.KeyAndId;
+import com.kingsrook.qqq.backend.core.actions.permissions.fieldaccess.ClassifiedValueTokens;
 import com.kingsrook.qqq.backend.core.actions.reporting.ExportAction;
 import com.kingsrook.qqq.backend.core.actions.tables.InsertAction;
 import com.kingsrook.qqq.backend.core.actions.tables.QueryAction;
@@ -56,8 +56,6 @@ import com.kingsrook.qqq.backend.core.model.metadata.QInstance;
 import com.kingsrook.qqq.backend.core.model.metadata.tables.QTableMetaData;
 import com.kingsrook.qqq.backend.core.utils.JsonUtils;
 import org.junit.jupiter.api.AfterEach;
-import org.junit.jupiter.api.Assumptions;
-import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import static com.kingsrook.qbits.secureddata.RetentionTestSupport.rows;
 import static com.kingsrook.qbits.secureddata.RetentionTestSupport.rule;
@@ -67,23 +65,11 @@ import static org.assertj.core.api.Assertions.assertThat;
 /*******************************************************************************
  ** SECURED-DATA section 15 proofs: a planted canary never leaves the host table,
  ** and shredded audit tokens cannot be brute-forced once the data key is gone.
- ** Both need the core audit-protection hooks (#1182), so RC.6 skips them.
  *******************************************************************************/
 class RetentionProofTest
 {
    private static final SecureRandom RANDOM = new SecureRandom();
    private static final String OTHER_KEY = "/v79vLu6ubi3trW0s7KxsK+uraypqKempaSjoqGgn56dnJuamZiXlpU=";
-
-
-
-   /*******************************************************************************
-    ** Skip unless core supplies the audit hooks.
-    *******************************************************************************/
-   @BeforeEach
-   void requireCoreHooks()
-   {
-      Assumptions.assumeTrue(CoreAuditBridge.available(), "QQQ core audit-protection hooks (#1182) are not on this classpath");
-   }
 
 
 

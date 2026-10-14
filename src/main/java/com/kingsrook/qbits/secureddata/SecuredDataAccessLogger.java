@@ -38,11 +38,11 @@ import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicLong;
 import com.kingsrook.qbits.secureddata.metadata.SecuredDataTables;
-import com.kingsrook.qbits.secureddata.standin.FieldAccessEvent;
-import com.kingsrook.qbits.secureddata.standin.FieldAccessEventType;
-import com.kingsrook.qbits.secureddata.standin.FieldAccessOutcome;
 import com.kingsrook.qbits.secureddata.support.SecuredDataMetadata;
 import com.kingsrook.qbits.secureddata.support.SystemWrites;
+import com.kingsrook.qqq.backend.core.actions.permissions.fieldaccess.FieldAccessEvent;
+import com.kingsrook.qqq.backend.core.actions.permissions.fieldaccess.FieldAccessEventType;
+import com.kingsrook.qqq.backend.core.actions.permissions.fieldaccess.FieldAccessOutcome;
 import com.kingsrook.qqq.backend.core.alerts.AlertSignal;
 import com.kingsrook.qqq.backend.core.alerts.QAlerts;
 import com.kingsrook.qqq.backend.core.context.CapturedContext;
@@ -59,7 +59,6 @@ import com.kingsrook.qqq.backend.core.model.metadata.tables.QTableMetaData;
 import com.kingsrook.qqq.backend.core.model.session.QSession;
 import com.kingsrook.qqq.backend.core.model.session.QSystemUserSession;
 import com.kingsrook.qqq.backend.core.utils.JsonUtils;
-
 
 /*******************************************************************************
  ** Bounded asynchronous value-free audit, with persisted and local enumeration accounting.

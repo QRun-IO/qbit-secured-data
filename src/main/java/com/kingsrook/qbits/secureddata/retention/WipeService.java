@@ -35,19 +35,20 @@ import java.util.Objects;
 import java.util.Set;
 import java.util.UUID;
 import java.util.stream.Collectors;
-import com.kingsrook.qbits.secureddata.CoreAuditBridge;
 import com.kingsrook.qbits.secureddata.SecuredDataKeySource;
 import com.kingsrook.qbits.secureddata.SecuredDataRuntime;
 import com.kingsrook.qbits.secureddata.metadata.SecuredDataTables;
 import com.kingsrook.qbits.secureddata.support.ActivityLog;
 import com.kingsrook.qbits.secureddata.support.SystemWrites;
 import com.kingsrook.qqq.backend.core.actions.QBackendTransaction;
+import com.kingsrook.qqq.backend.core.actions.audits.AuditShreddedEvent;
 import com.kingsrook.qqq.backend.core.actions.tables.DeleteAction;
 import com.kingsrook.qqq.backend.core.actions.tables.QueryAction;
 import com.kingsrook.qqq.backend.core.actions.tables.UpdateAction;
 import com.kingsrook.qqq.backend.core.context.QContext;
 import com.kingsrook.qqq.backend.core.exceptions.QException;
 import com.kingsrook.qqq.backend.core.exceptions.QPermissionDeniedException;
+import com.kingsrook.qqq.backend.core.model.actions.tables.WipeAuditFlag;
 import com.kingsrook.qqq.backend.core.model.actions.tables.delete.DeleteInput;
 import com.kingsrook.qqq.backend.core.model.actions.tables.query.QCriteriaOperator;
 import com.kingsrook.qqq.backend.core.model.actions.tables.query.QFilterCriteria;
@@ -292,7 +293,7 @@ public final class WipeService
                {
                   throw (new QException("Audit key deletion failed."));
                }
-               CoreAuditBridge.detail(table, pk, field, rule.getValueString("id"), true, transaction);
+               AuditShreddedEvent.shreddedDetail(table, pk, table.getField(field), rule.getValueString("id"), transaction);
             }
             markers.add(new QRecord().withValue("table_name", table.getName()).withValue("record_id", String.valueOf(pk)).withValue("field_name", field)
                .withValue("rule_id", rule.getValue("id")).withValue("action", action).withValue("wiped_at", started));
@@ -385,15 +386,9 @@ public final class WipeService
          patch.setValue(field, value);
       }
       UpdateInput input = new UpdateInput(table.getName()).withRecord(patch).withTransaction(transaction);
-      CoreAuditBridge.flag(input, rule.getValueString("id"));
+      input.setFlags(Set.of(new WipeAuditFlag(rule.getValueString("id"))));
       check(new UpdateAction().execute(input).getRecords());
-      if(!CoreAuditBridge.available())
-      {
-         for(String field : fields)
-         {
-            CoreAuditBridge.detail(table, pk, field, rule.getValueString("id"), false, transaction);
-         }
-      }
+
    }
 
    /*******************************************************************************

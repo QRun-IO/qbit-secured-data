@@ -22,9 +22,9 @@
 <project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
 
    <properties>
-      <!-- Released APIs; fieldaccess and audit protection remain RC.7 stand-ins. -->
-      <qqq.snapshot.version>4.1.0-RC.6</qqq.snapshot.version>
-      <revision>1.0.0-SNAPSHOT</revision>
+      <!-- QQQ 4.1.0-RC.7 ships field access (#1172) and audit value protection (#1182) -->
+      <qqq.snapshot.version>4.1.0-RC.7</qqq.snapshot.version>
+      <revision>0.1.0-SNAPSHOT</revision>
       <maven.compiler.source>21</maven.compiler.source>
       <maven.compiler.target>21</maven.compiler.target>
       <jacoco.version>0.8.15</jacoco.version>
