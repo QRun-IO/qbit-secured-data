@@ -25,7 +25,9 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.sql.Connection;
 import java.sql.DriverManager;
+import com.kingsrook.qbits.secureddata.metadata.SecuredDataTables;
 import com.kingsrook.qqq.backend.core.context.QContext;
+import com.kingsrook.qqq.backend.core.model.data.QRecord;
 import com.kingsrook.qqq.backend.core.model.metadata.QInstance;
 import com.kingsrook.qqq.backend.module.rdbms.model.metadata.RDBMSBackendMetaData;
 import com.kingsrook.qqq.backend.module.rdbms.model.metadata.RDBMSTableBackendDetails;
@@ -37,6 +39,7 @@ import static com.kingsrook.qbits.secureddata.SecuredDataTestSupport.RUNTIMES;
 import static com.kingsrook.qbits.secureddata.SecuredDataTestSupport.base;
 import static com.kingsrook.qbits.secureddata.SecuredDataTestSupport.classification;
 import static com.kingsrook.qbits.secureddata.SecuredDataTestSupport.close;
+import static com.kingsrook.qbits.secureddata.SecuredDataTestSupport.insert;
 import static com.kingsrook.qbits.secureddata.SecuredDataTestSupport.logs;
 import static com.kingsrook.qbits.secureddata.SecuredDataTestSupport.person;
 import static com.kingsrook.qbits.secureddata.SecuredDataTestSupport.policy;
@@ -97,7 +100,21 @@ class SecuredDataDdlTest
          SecuredDataRuntime.current().logger().onAccess(SecuredDataAccessLoggerTest.event(com.kingsrook.qbits.secureddata.standin.FieldAccessEventType.EXACT_MATCH_FILTER,
             com.kingsrook.qbits.secureddata.standin.FieldAccessOutcome.MATCH, "hmac"));
          SecuredDataRuntime.current().logger().flush();
-         assertThat(logs()).hasSize(1);
+         assertThat(logs()).extracting(row -> row.getValueString("event_type")).containsExactly("CLASSIFICATION_CHANGE", "POLICY_CHANGE", "EXACT_MATCH_FILTER");
+         // Equal timestamps must be counted by SQL as well as the memory backend.
+         SecuredDataRuntime.current().config().withAnomalyMinimumDailyReveals(1000).withAnomalyDistinctRecordsPerHour(2).withAnomalyExactMatchesPerHour(2);
+         for(int i = 0; i < 3; i++)
+         {
+            QRecord audit = insert(SecuredDataTables.ACCESS_LOG, com.kingsrook.qbits.secureddata.support.ActivityLog.row("REVEAL", "person", "ALLOWED")
+               .withValue("record_id", String.valueOf(i)).withValue("field_name", "email"));
+            assertThat(audit.getValueBoolean("anomaly_flag")).isEqualTo(i == 2);
+         }
+         for(int i = 0; i < 2; i++)
+         {
+            QRecord audit = insert(SecuredDataTables.ACCESS_LOG, com.kingsrook.qbits.secureddata.support.ActivityLog.row("EXACT_MATCH_FILTER", "person", "MATCH")
+               .withValue("field_name", "email"));
+            assertThat(audit.getValueBoolean("anomaly_flag")).isEqualTo(i == 1);
+         }
          assertThatThrownBy(() -> connection.createStatement().execute("INSERT INTO secured_data_classification (table_name, classification) VALUES ('person', 'PHI')"))
             .isInstanceOf(java.sql.SQLException.class);
          assertThatThrownBy(() -> connection.createStatement().execute("INSERT INTO secured_data_policy (name, permission_name, classification, tier, reveal_minutes) VALUES ('x','x','PII','FULL',61)"))

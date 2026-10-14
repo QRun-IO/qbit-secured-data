@@ -187,7 +187,7 @@ class RevealAndBreakGlassTest
       assertThat(tier("email")).isEqualTo(FieldAccessTier.FULL);
       assertThat(tier("ssn")).isEqualTo(FieldAccessTier.FULL);
       assertThat(SecuredDataRuntime.current().resolver().getAccessFingerprint()).isNotEqualTo(fingerprint);
-      assertThat(Sink.signals).singleElement().satisfies(s -> { assertThat(s.getSeverity()).isEqualTo(AlertSeverity.ERROR); assertThat(s.getAlertTypeName()).isEqualTo("secured_data.break_glass"); });
+      assertThat(Sink.signals).filteredOn(s -> "secured_data.break_glass".equals(s.getAlertTypeName())).singleElement().satisfies(s -> { assertThat(s.getSeverity()).isEqualTo(AlertSeverity.ERROR); assertThat(s.getAlertTypeName()).isEqualTo("secured_data.break_glass"); });
       var status = new StatusService().status();
       assertThat(status.breakGlass().id()).isEqualTo(row.getValue("id"));
       assertThat(status.breakGlass().expiresAt()).isEqualTo(NOW.plusSeconds(3600));

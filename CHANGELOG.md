@@ -6,6 +6,12 @@ All notable changes are documented here, following [Keep a Changelog](https://ke
 
 ### Added
 
+- Phase (e) configurable reveal-median, distinct-record and exact-match anomaly detection, with system access-log counters, bounded daily median caching, per-user/day alerts, and flags retained without an alert sink.
+- Break-glass start and capped-reveal anomaly flags alongside the existing alerts.
+- One Secured Data app home with six live KPIs, six full-width responsive lists, filtered View all links, theme tokens, compact dates, clamped text/tooltips and explicit empty states.
+- Transaction-aware, value-free policy/classification change audit rows from post-write customizers and two access-log indexes for anomaly/home queries.
+- Boundary, alert, home data, rendering and navigation tests plus a synthetic Next demo harness for coordinator screenshot capture.
+
 - Phase (c) HTTP-independent reveal options, reason validation, UTC daily limits, grants, audit links, cap alerts and assistant refusal.
 - Five-second per-user grant cache with immediate invalidation and read-time expiration.
 - Start/End break-glass table and record actions, streamed Review/Result summaries, owner/admin authorization, scheduled expiration, alerts and optional admin bell notification.

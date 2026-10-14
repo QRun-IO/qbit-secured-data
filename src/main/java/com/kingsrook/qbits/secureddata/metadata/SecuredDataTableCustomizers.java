@@ -165,15 +165,17 @@ public class SecuredDataTableCustomizers implements TableCustomizerInterface
     ** Only successful mutations invalidate; transactions invalidate after commit.
     *******************************************************************************/
    @Override
-   public List<QRecord> postInsertOrUpdate(AbstractActionInput input, List<QRecord> records, Optional<List<QRecord>> oldRecords)
+   public List<QRecord> postInsertOrUpdate(AbstractActionInput input, List<QRecord> records, Optional<List<QRecord>> oldRecords) throws QException
    {
       if(input instanceof InsertInput insert)
       {
          changed(insert.getTableName(), records, insert.getTransaction());
+         audit(insert.getTableName(), records, "INSERT", insert.getTransaction());
       }
       else if(input instanceof UpdateInput update)
       {
          changed(update.getTableName(), records, update.getTransaction());
+         audit(update.getTableName(), records, "UPDATE", update.getTransaction());
       }
       return (records);
    }
@@ -184,9 +186,10 @@ public class SecuredDataTableCustomizers implements TableCustomizerInterface
     ** Deletions change the same versions as inserts and updates.
     *******************************************************************************/
    @Override
-   public List<QRecord> postDelete(DeleteInput input, List<QRecord> records)
+   public List<QRecord> postDelete(DeleteInput input, List<QRecord> records) throws QException
    {
       changed(input.getTableName(), records, input.getTransaction());
+      audit(input.getTableName(), records, "DELETE", input.getTransaction());
       return (records);
    }
 
@@ -214,6 +217,27 @@ public class SecuredDataTableCustomizers implements TableCustomizerInterface
          else
          {
             active.addAfterCommitCallback(invalidate);
+         }
+      }
+   }
+
+   /*******************************************************************************
+    ** Value-free mutation audit in the same transaction as the changed metadata.
+    *******************************************************************************/
+   private static void audit(String table, List<QRecord> records, String action, QBackendTransaction transaction) throws QException
+   {
+      if(!List.of(SecuredDataTables.POLICY, SecuredDataTables.CLASSIFICATION).contains(table))
+      {
+         return;
+      }
+      for(QRecord record : records)
+      {
+         if(record.getErrors() == null || record.getErrors().isEmpty())
+         {
+            SystemWrites.insertOne(SecuredDataTables.ACCESS_LOG, com.kingsrook.qbits.secureddata.support.ActivityLog.row(
+               SecuredDataTables.POLICY.equals(table) ? "POLICY_CHANGE" : "CLASSIFICATION_CHANGE", table, "ALLOWED")
+               .withValue("record_id", record.getValueString("id")).withValue("action_name", action),
+               transaction == null ? QContext.getQBackendTransaction() : transaction);
          }
       }
    }
