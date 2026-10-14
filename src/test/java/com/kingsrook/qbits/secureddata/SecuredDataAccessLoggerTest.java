@@ -116,7 +116,7 @@ class SecuredDataAccessLoggerTest
          .hasMessage("Exact-match search limit reached for [email]. Try again later or ask an administrator.");
       resolver.onAccess(refused);
       logger.flush();
-      assertThat(logs()).hasSize(21);
+      assertThat(logs()).filteredOn(row -> "EXACT_MATCH_FILTER".equals(row.getValueString("event_type"))).hasSize(21);
       assertThat(logs().stream().filter(row -> "REFUSED".equals(row.getValueString("outcome")))).hasSize(1);
       assertThat(JsonUtils.toJson(logs())).doesNotContain("sentinel").doesNotContain("known");
       CLOCK.now = NOW.plusSeconds(3601);
@@ -204,7 +204,7 @@ class SecuredDataAccessLoggerTest
       classification("notes", "CONFIDENTIAL");
       logger.onAccess(event(FieldAccessEventType.VIEW, null, null).withFieldNames(List.of("notes", "email")));
       logger.flush();
-      assertThat(logs()).hasSize(3);
+      assertThat(logs()).filteredOn(row -> !"CLASSIFICATION_CHANGE".equals(row.getValueString("event_type"))).hasSize(3);
    }
 
    /*******************************************************************************

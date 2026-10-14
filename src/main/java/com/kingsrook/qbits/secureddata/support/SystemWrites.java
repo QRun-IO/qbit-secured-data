@@ -22,6 +22,7 @@ package com.kingsrook.qbits.secureddata.support;
 
 
 import java.util.List;
+import com.kingsrook.qqq.backend.core.actions.QBackendTransaction;
 import com.kingsrook.qqq.backend.core.actions.permissions.CorePermissionEnforcer;
 import com.kingsrook.qqq.backend.core.actions.tables.InsertAction;
 import com.kingsrook.qqq.backend.core.actions.tables.QueryAction;
@@ -120,10 +121,52 @@ public final class SystemWrites
     *******************************************************************************/
    public static QRecord insertOne(String table, QRecord record) throws QException
    {
-      QRecord inserted = call(() -> new InsertAction().execute(new InsertInput(table).withRecord(record)).getRecords().getFirst());
+      return (insertOne(table, record, QContext.getQBackendTransaction()));
+   }
+
+   /*******************************************************************************
+    ** Explicit transaction for post-write customizers; audit rolls back with its source.
+    *******************************************************************************/
+   public static QRecord insertOne(String table, QRecord record, QBackendTransaction transaction) throws QException
+   {
+      if(com.kingsrook.qbits.secureddata.metadata.SecuredDataTables.ACCESS_LOG.equals(table))
+      {
+         synchronized(com.kingsrook.qbits.secureddata.SecuredDataRuntime.current().anomalies())
+         {
+            return (insertAndAlert(table, record, transaction));
+         }
+      }
+      return (insertAndAlert(table, record, transaction));
+   }
+
+   /*******************************************************************************
+    ** Serialize same-node counter evaluation and insertion. Preserve enumeration flags.
+    *******************************************************************************/
+   private static QRecord insertAndAlert(String table, QRecord record, QBackendTransaction transaction) throws QException
+   {
+      boolean anomaly = com.kingsrook.qbits.secureddata.metadata.SecuredDataTables.ACCESS_LOG.equals(table)
+         && com.kingsrook.qbits.secureddata.SecuredDataRuntime.current().anomalies().evaluate(record);
+      if(anomaly)
+      {
+         record.setValue("anomaly_flag", true);
+      }
+      QRecord inserted = call(() -> new InsertAction().execute(new InsertInput(table).withRecord(record).withTransaction(transaction)).getRecords().getFirst());
       if(inserted.getErrors() != null && !inserted.getErrors().isEmpty())
       {
          throw (new QException("Secured-data system insert failed"));
+      }
+      if(anomaly)
+      {
+         if(transaction == null)
+         {
+            com.kingsrook.qbits.secureddata.SecuredDataAnomalies.raise(inserted);
+         }
+         else
+         {
+            var context = new com.kingsrook.qqq.backend.core.context.CapturedContext(QContext.getQInstance(), QContext.getQSession());
+            transaction.addAfterCommitCallback(() -> QContext.withTemporaryContext(context,
+               () -> com.kingsrook.qbits.secureddata.SecuredDataAnomalies.raise(inserted)));
+         }
       }
       return (inserted);
    }

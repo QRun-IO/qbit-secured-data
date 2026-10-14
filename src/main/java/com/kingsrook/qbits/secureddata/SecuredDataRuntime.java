@@ -40,6 +40,7 @@ public class SecuredDataRuntime implements QSupplementalInstanceMetaData, AutoCl
    private final transient SecuredDataQBitConfig config;
    private final transient SecuredDataResolver resolver;
    private final transient SecuredDataAccessLogger logger;
+   private final transient SecuredDataAnomalies anomalies;
    private transient long cachedClassificationVersion;
    private transient List<com.kingsrook.qqq.backend.core.model.data.QRecord> classificationRows = List.of();
 
@@ -52,6 +53,7 @@ public class SecuredDataRuntime implements QSupplementalInstanceMetaData, AutoCl
    {
       this.config = config;
       this.resolver = new SecuredDataResolver(this);
+      this.anomalies = new SecuredDataAnomalies(config);
       this.logger = new SecuredDataAccessLogger(instance, this);
    }
 
@@ -172,5 +174,13 @@ public class SecuredDataRuntime implements QSupplementalInstanceMetaData, AutoCl
    public void close()
    {
       logger.close();
+   }
+
+   /*******************************************************************************
+    ** Anomaly counters shared by synchronous reveals and queued searches.
+    *******************************************************************************/
+   public SecuredDataAnomalies anomalies()
+   {
+      return (anomalies);
    }
 }

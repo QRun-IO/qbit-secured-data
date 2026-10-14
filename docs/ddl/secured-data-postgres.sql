@@ -93,3 +93,7 @@ CREATE INDEX secured_data_policy_lookup ON secured_data_policy (is_active, permi
 CREATE INDEX secured_data_break_glass_lookup ON secured_data_break_glass (user_id, status, expires_at);
 CREATE INDEX secured_data_reveal_lookup ON secured_data_reveal_grant (user_id, table_name, field_name, record_id, expires_at);
 CREATE INDEX secured_data_access_lookup ON secured_data_access_log (user_id, table_name, field_name, event_type, created_at);
+
+-- Phase (e): bounded user counters and home time windows.
+CREATE INDEX secured_data_anomaly_lookup ON secured_data_access_log (user_id, event_type, created_at);
+CREATE INDEX secured_data_home_lookup ON secured_data_access_log (event_type, created_at);

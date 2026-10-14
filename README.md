@@ -1,6 +1,6 @@
 # QBit Secured Data
 
-Phases (b) and (c) of [SECURED-DATA](https://github.com/QRun-IO/qqq/blob/develop/docs/SECURED-DATA.md): classification overrides, policy resolution, enumeration guardrails, and value-free access logging. QQQ core owns masking and query enforcement. Reveal and break-glass services and actions are implemented. Home widgets, retention and audit-value protection remain later phases.
+Phases (b), (c), and (e) of [SECURED-DATA](https://github.com/QRun-IO/qqq/blob/develop/docs/SECURED-DATA.md): classification overrides, policy resolution, enumeration guardrails, and value-free access logging. QQQ core owns masking and query enforcement. Reveal, break-glass, the app home and anomaly alerts are implemented. Retention and audit-value protection remain later phases.
 
 ## Compatibility
 
@@ -164,9 +164,50 @@ Configure before producing the QBit; runtime infrastructure and HMAC keys are ca
 
 The direct suite uses memory and H2. `CoreFieldAccessBridgeIT` is included by Surefire and uses JUnit assumptions to skip unless the actual core resolver metadata is present. With the installed core snapshot it exercises Query/Get, policy tiers, masking, exact matches and outcomes, sorting denial, rate/entropy refusal and the assistant wall. Checkstyle and JaCoCo remain 70% instructions / 90% classes; stand-ins are not excluded.
 
+## Anomaly monitoring (phase e)
+
+Application REVEAL and queued EXACT_MATCH_FILTER audit writes evaluate persisted access-log counters as system, counting the current row once. Successful reveals flag above three times the user's median across the previous 30 complete UTC days (including zero days), with at least ten reveals today. More than 20 distinct `(table, record)` pairs within the last hour also flag. More than 50 exact-match attempts on one restricted field within the last hour flag independently of enumeration controls. The default rate limit of 20 usually refuses searches first; refused attempts still count.
+
+Break-glass starts and capped reveal refusals also flag. Each raises `secured_data.anomaly` with dedup key `secured_data.anomaly:<user>:<UTC day>` through the optional alerts SPI. Existing enumeration, break-glass and cap alerts remain intact. No qbit-alerts dependency is required; flags remain visible without a sink. The sink owns deduplication. End and expiry events remain in the break-glass activity list rather than representing new session anomalies.
+
+Thresholds are positive integers:
+
+| Config method | Default |
+| --- | ---: |
+| `withAnomalyDailyMedianMultiplier` | 3 |
+| `withAnomalyMinimumDailyReveals` | 10 |
+| `withAnomalyDistinctRecordsPerHour` | 20 |
+| `withAnomalyExactMatchesPerHour` | 50 |
+
+Medians use 30 scalar indexed counts on first qualifying use per user/day, cached for at most 2,048 users per instance and cleared at UTC day rollover. Today's and hourly counts read persisted history; distinct-record queries return at most the threshold plus one grouped rows. Counter evaluation and insertion serialize within an instance; other nodes become visible through persisted rows. This monitors activity rather than providing a distributed enforcement lock. Historical backfills after caching take effect next UTC day or after runtime restart. Existing deployments should apply the two new access-log indexes in `docs/ddl/secured-data-postgres.sql`.
+
+## Secured Data home
+
+The single Secured Data app owns one full-width HTML home widget, following qbit-webhooks' data/view/renderer pattern. It reads as the viewer with normal permissions and record security:
+
+- Six KPIs: reveals today, unexpired grants, active and unexpired break-glass sessions, anomaly flags and denied filters over seven days, and this runtime's access-log queue drops since startup. Denied filters include refused exact-match attempts.
+- Six full-width lists: recent reveals (10), top revealers and reasons (30-day backend aggregates, top 10), recent break-glass starts/ends/expiries (10), policy/classification changes (10), and seven-day anomaly flags (10).
+- Each list has a filtered access-log `View all` link without the widget's ten-row limit. Configure the host table route with `withTablePathPrefix("/app")`.
+
+Lists order newest first with id tie-breaking; rankings order by count descending then group alphabetically. Narrow screens use wrapping labelled card rows. Dates stay compact on one line, text is ellipsized with full tooltips, and colors inherit the host with `--qqq-grid-border` for borders. There are no inner scrollers. Empty lists explicitly say there is no activity.
+
+Navigation contains Classification, Policy, Access log and Break-glass sessions. Reveal grants remain a child list; retention is not implemented. Successful policy/classification inserts, updates and deletes produce value-free change rows with actor, record id and action in the source transaction. No configuration values are copied into these rows.
+
+### Local screenshot harness
+
+`SecuredDataDemoServer` is a test-only memory-backed Next demo adapted from qbit-webhooks. It seeds synthetic activity for all six lists, including long reasons, sessions and anomaly flags. It uses a demo administrator and must only be run locally. After a test run, launch in PowerShell:
+
+```powershell
+[xml]$report = Get-Content target/surefire-reports/TEST-com.kingsrook.qbits.secureddata.SecuredDataHomeTest.xml
+$demoClasspath = ($report.testsuite.properties.property | Where-Object name -eq 'java.class.path').value
+java -cp $demoClasspath com.kingsrook.qbits.secureddata.SecuredDataDemoServer
+```
+
+Open `http://localhost:8098/app/secured_data`. Stop the demo before `clean` on Windows. Capture light and dark at 390, 768, 1024, 1440, 1920 and 3200 px under `target/screenshots/`. This session started the server, but screenshot capture was blocked by Chromium `spawn EPERM` in the sandbox and two connected-browser timeouts. The coordinator still needs to capture and inspect the twelve images through Next.
+
 ## Remaining phases
 
-RC.6 migration removes temporary types and reflection. Phase (e) adds the app home and broader anomaly rules. Retention, wipe and audit-value protection remain phases (f)/(g).
+RC.6 migration removes temporary types and reflection. Retention, wipe and audit-value protection remain phases (f)/(g).
 
 ## License
 

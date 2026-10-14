@@ -43,6 +43,11 @@ public class SecuredDataQBitConfig implements QBitConfig
 {
    private static final byte[] JVM_KEY = new SecureRandom().generateSeed(32);
    private Map<String, String> defaultTierByClassification = new HashMap<>(Map.of("CONFIDENTIAL", "FULL", "PII", "MASKED", "PHI", "MASKED"));
+   private int anomalyDailyMedianMultiplier = 3;
+   private int anomalyMinimumDailyReveals = 10;
+   private int anomalyDistinctRecordsPerHour = 20;
+   private int anomalyExactMatchesPerHour = 50;
+   private String tablePathPrefix = "/app";
    private String schedulerName;
    private String backendName = "memory";
    private Clock clock = Clock.systemUTC();
@@ -382,6 +387,8 @@ public class SecuredDataQBitConfig implements QBitConfig
    public void validate()
    {
       if(backendName == null || backendName.isBlank() || accessLogQueueCapacity < 1 || accessLogFlushIntervalMillis < 1
+         || anomalyDailyMedianMultiplier < 1 || anomalyMinimumDailyReveals < 1 || anomalyDistinctRecordsPerHour < 1
+         || anomalyExactMatchesPerHour < 1 || tablePathPrefix == null || !tablePathPrefix.startsWith("/") || tablePathPrefix.startsWith("//")
          || exactMatchPerHour < 0 || missAlertConsecutive < 0 || distinctValueAlert < 0)
       {
          throw (new IllegalArgumentException("Invalid secured-data configuration"));
@@ -389,5 +396,90 @@ public class SecuredDataQBitConfig implements QBitConfig
       Objects.requireNonNull(clock);
       Objects.requireNonNull(viewLogClassifications);
       Objects.requireNonNull(fingerprintKeySupplier);
+   }
+
+   /*******************************************************************************
+    ** Get anomalyDailyMedianMultiplier.
+    *******************************************************************************/
+   public int getAnomalyDailyMedianMultiplier()
+   {
+      return (anomalyDailyMedianMultiplier);
+   }
+
+   /*******************************************************************************
+    ** Configure anomalyDailyMedianMultiplier.
+    *******************************************************************************/
+   public SecuredDataQBitConfig withAnomalyDailyMedianMultiplier(int value)
+   {
+      this.anomalyDailyMedianMultiplier = value;
+      return (this);
+   }
+
+   /*******************************************************************************
+    ** Get anomalyMinimumDailyReveals.
+    *******************************************************************************/
+   public int getAnomalyMinimumDailyReveals()
+   {
+      return (anomalyMinimumDailyReveals);
+   }
+
+   /*******************************************************************************
+    ** Configure anomalyMinimumDailyReveals.
+    *******************************************************************************/
+   public SecuredDataQBitConfig withAnomalyMinimumDailyReveals(int value)
+   {
+      this.anomalyMinimumDailyReveals = value;
+      return (this);
+   }
+
+   /*******************************************************************************
+    ** Get anomalyDistinctRecordsPerHour.
+    *******************************************************************************/
+   public int getAnomalyDistinctRecordsPerHour()
+   {
+      return (anomalyDistinctRecordsPerHour);
+   }
+
+   /*******************************************************************************
+    ** Configure anomalyDistinctRecordsPerHour.
+    *******************************************************************************/
+   public SecuredDataQBitConfig withAnomalyDistinctRecordsPerHour(int value)
+   {
+      this.anomalyDistinctRecordsPerHour = value;
+      return (this);
+   }
+
+   /*******************************************************************************
+    ** Get anomalyExactMatchesPerHour.
+    *******************************************************************************/
+   public int getAnomalyExactMatchesPerHour()
+   {
+      return (anomalyExactMatchesPerHour);
+   }
+
+   /*******************************************************************************
+    ** Configure anomalyExactMatchesPerHour.
+    *******************************************************************************/
+   public SecuredDataQBitConfig withAnomalyExactMatchesPerHour(int value)
+   {
+      this.anomalyExactMatchesPerHour = value;
+      return (this);
+   }
+
+   /*******************************************************************************
+    ** Get tablePathPrefix.
+    *******************************************************************************/
+   public String getTablePathPrefix()
+   {
+      return (tablePathPrefix);
+   }
+
+   /*******************************************************************************
+    ** Configure tablePathPrefix.
+    *******************************************************************************/
+   public SecuredDataQBitConfig withTablePathPrefix(String value)
+   {
+      this.tablePathPrefix = value;
+      return (this);
    }
 }

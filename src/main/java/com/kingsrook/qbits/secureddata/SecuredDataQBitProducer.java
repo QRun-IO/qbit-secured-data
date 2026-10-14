@@ -27,7 +27,6 @@ import java.util.Locale;
 import java.util.Map;
 import com.kingsrook.qbits.secureddata.metadata.SecuredDataTableCustomizers;
 import com.kingsrook.qbits.secureddata.metadata.SecuredDataTables;
-import com.kingsrook.qbits.secureddata.permissions.SecuredDataPermissions;
 import com.kingsrook.qbits.secureddata.standin.DataClassification;
 import com.kingsrook.qbits.secureddata.support.CoreMetadataBridge;
 import com.kingsrook.qqq.backend.core.actions.customizers.TableCustomizers;
@@ -36,8 +35,6 @@ import com.kingsrook.qqq.backend.core.model.metadata.MetaDataProducerMultiOutput
 import com.kingsrook.qqq.backend.core.model.metadata.QInstance;
 import com.kingsrook.qqq.backend.core.model.metadata.code.QCodeReference;
 import com.kingsrook.qqq.backend.core.model.metadata.fields.QFieldMetaData;
-import com.kingsrook.qqq.backend.core.model.metadata.layout.QAppMetaData;
-import com.kingsrook.qqq.backend.core.model.metadata.layout.QIcon;
 import com.kingsrook.qqq.backend.core.model.metadata.qbits.QBitMetaData;
 import com.kingsrook.qqq.backend.core.model.metadata.qbits.QBitMetaDataProducer;
 import com.kingsrook.qqq.backend.core.model.metadata.tables.QTableMetaData;
@@ -138,8 +135,7 @@ public class SecuredDataQBitProducer implements QBitMetaDataProducer<SecuredData
       qInstance.addQBit(qBit);
       MetaDataProducerMultiOutput output = new MetaDataProducerMultiOutput();
       SecuredDataTables.possibleValueSources(qInstance).forEach(output::add);
-      QAppMetaData app = new QAppMetaData().withName("secured_data").withLabel("Secured Data")
-         .withIcon(new QIcon("shield")).withPermissionRules(SecuredDataPermissions.rules());
+
       Map<String, QTableMetaData> tables = new LinkedHashMap<>();
       for(QTableMetaData definition : SecuredDataTables.tables(qBitConfig))
       {
@@ -154,8 +150,8 @@ public class SecuredDataQBitProducer implements QBitMetaDataProducer<SecuredData
          tables.put(table.getName(), table);
          output.add(table);
       }
-      SecuredDataTables.MAIN.forEach(name -> app.withChild(tables.get(name)));
-      output.add(app);
+      output.add(com.kingsrook.qbits.secureddata.app.SecuredDataApp.app(tables));
+      output.add(com.kingsrook.qbits.secureddata.app.SecuredDataApp.widget());
       com.kingsrook.qbits.secureddata.processes.BreakGlassProcesses.processes(qBitConfig).forEach(output::add);
       output.add(SecuredDataTables.revealsJoin());
       output.add(SecuredDataTables.revealsWidget());
