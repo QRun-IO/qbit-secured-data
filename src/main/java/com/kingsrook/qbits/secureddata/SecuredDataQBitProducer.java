@@ -21,14 +21,30 @@
 package com.kingsrook.qbits.secureddata;
 
 
+import java.util.LinkedHashMap;
+import java.util.List;
+import java.util.Locale;
+import java.util.Map;
+import com.kingsrook.qbits.secureddata.metadata.SecuredDataTableCustomizers;
+import com.kingsrook.qbits.secureddata.metadata.SecuredDataTables;
+import com.kingsrook.qbits.secureddata.permissions.SecuredDataPermissions;
+import com.kingsrook.qbits.secureddata.standin.DataClassification;
+import com.kingsrook.qbits.secureddata.support.CoreMetadataBridge;
+import com.kingsrook.qqq.backend.core.actions.customizers.TableCustomizers;
+import com.kingsrook.qqq.backend.core.exceptions.QException;
 import com.kingsrook.qqq.backend.core.model.metadata.MetaDataProducerMultiOutput;
 import com.kingsrook.qqq.backend.core.model.metadata.QInstance;
+import com.kingsrook.qqq.backend.core.model.metadata.code.QCodeReference;
+import com.kingsrook.qqq.backend.core.model.metadata.fields.QFieldMetaData;
+import com.kingsrook.qqq.backend.core.model.metadata.layout.QAppMetaData;
+import com.kingsrook.qqq.backend.core.model.metadata.layout.QIcon;
 import com.kingsrook.qqq.backend.core.model.metadata.qbits.QBitMetaData;
 import com.kingsrook.qqq.backend.core.model.metadata.qbits.QBitMetaDataProducer;
+import com.kingsrook.qqq.backend.core.model.metadata.tables.QTableMetaData;
 
 
 /*******************************************************************************
- ** Entry point for the secured-data qbit; no tables are produced yet.
+ ** Entry point for secured-data policy, classification and access logging.
  *******************************************************************************/
 public class SecuredDataQBitProducer implements QBitMetaDataProducer<SecuredDataQBitConfig>
 {
@@ -108,13 +124,90 @@ public class SecuredDataQBitProducer implements QBitMetaDataProducer<SecuredData
 
 
    /*******************************************************************************
-    ** Register this qbit and return its metadata, without producing tables.
+    ** Register tables, permissions, runtime and the optional core enforcement bridge.
     *******************************************************************************/
    @Override
-   public MetaDataProducerMultiOutput produce(QInstance qInstance)
+   public MetaDataProducerMultiOutput produce(QInstance qInstance) throws QException
    {
+      qBitConfig.validate();
+      if(qInstance.getSupplementalMetaData(SecuredDataRuntime.NAME) != null)
+      {
+         throw (new IllegalStateException("Only one secured-data QBit may be registered per instance"));
+      }
       QBitMetaData qBit = getQBitMetaData();
       qInstance.addQBit(qBit);
-      return (new MetaDataProducerMultiOutput().with(qBit));
+      MetaDataProducerMultiOutput output = new MetaDataProducerMultiOutput();
+      SecuredDataTables.possibleValueSources(qInstance).forEach(output::add);
+      QAppMetaData app = new QAppMetaData().withName("secured_data").withLabel("Secured Data")
+         .withIcon(new QIcon("shield")).withPermissionRules(SecuredDataPermissions.rules());
+      Map<String, QTableMetaData> tables = new LinkedHashMap<>();
+      for(QTableMetaData definition : SecuredDataTables.tables(qBitConfig))
+      {
+         QTableMetaData table = qBitConfig.getTableMetaDataCustomizer() == null ? definition
+            : qBitConfig.getTableMetaDataCustomizer().customizeMetaData(qInstance, definition);
+         for(TableCustomizers role : List.of(TableCustomizers.PRE_INSERT_RECORD, TableCustomizers.PRE_UPDATE_RECORD, TableCustomizers.PRE_DELETE_RECORD,
+            TableCustomizers.POST_INSERT_RECORD, TableCustomizers.POST_UPDATE_RECORD, TableCustomizers.POST_DELETE_RECORD))
+         {
+            table.withCustomizer(role, new QCodeReference(SecuredDataTableCustomizers.class));
+         }
+         table.setSourceQBitName(qBit.getName());
+         tables.put(table.getName(), table);
+         output.add(table);
+      }
+      SecuredDataTables.MAIN.forEach(name -> app.withChild(tables.get(name)));
+      output.add(app);
+      output.add(SecuredDataTables.revealsJoin());
+      output.add(SecuredDataTables.revealsWidget());
+      output.addSelfToInstance(qInstance);
+      CoreMetadataBridge.register(qInstance);
+      if(qBitConfig.getNameHeuristics())
+      {
+         seedHeuristics(qInstance);
+      }
+      CoreMetadataBridge.promoteClassifications(qInstance);
+      SecuredDataRuntime runtime = new SecuredDataRuntime(qInstance, qBitConfig);
+      runtime.addSelfToInstance(qInstance);
+      try
+      {
+         CoreFieldAccessBridge.register(qInstance, runtime.resolver());
+      }
+      catch(RuntimeException e)
+      {
+         runtime.close();
+         throw e;
+      }
+      return (new MetaDataProducerMultiOutput());
+   }
+
+
+
+   /*******************************************************************************
+    ** Opt-in common-name defaults, preserving existing field/table classifications.
+    *******************************************************************************/
+   private static void seedHeuristics(QInstance instance)
+   {
+      for(QTableMetaData table : instance.getTables().values())
+      {
+         if(SecuredDataTables.ALL.contains(table.getName()))
+         {
+            continue;
+         }
+         for(QFieldMetaData field : table.getFields().values())
+         {
+            if(CoreMetadataBridge.classification(table, field) != null || CoreMetadataBridge.classification(table, null) != null)
+            {
+               continue;
+            }
+            String name = field.getName().toLowerCase(Locale.ROOT);
+            if(name.startsWith("diagnosis"))
+            {
+               CoreMetadataBridge.classifyField(field, DataClassification.PHI);
+            }
+            else if(List.of("ssn", "dob", "date_of_birth", "email", "phone").contains(name))
+            {
+               CoreMetadataBridge.classifyField(field, DataClassification.PII);
+            }
+         }
+      }
    }
 }
