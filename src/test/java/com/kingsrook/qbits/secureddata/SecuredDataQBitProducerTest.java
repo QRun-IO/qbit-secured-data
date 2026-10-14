@@ -26,11 +26,9 @@ import java.util.Map;
 import com.kingsrook.qbits.secureddata.metadata.FieldsOfTablePossibleValueSource;
 import com.kingsrook.qbits.secureddata.metadata.SecuredDataEnums;
 import com.kingsrook.qbits.secureddata.metadata.SecuredDataTables;
-import com.kingsrook.qqq.backend.core.model.metadata.permissions.ClientChannelsMetaData;
-import com.kingsrook.qqq.backend.core.actions.ai.DataClassification;
-import com.kingsrook.qbits.secureddata.standin.FieldAccessTier;
-import com.kingsrook.qqq.backend.core.model.metadata.permissions.TableFeaturePermissionsMetaData;
 import com.kingsrook.qbits.secureddata.support.SecuredDataMetadata;
+import com.kingsrook.qqq.backend.core.actions.ai.DataClassification;
+import com.kingsrook.qqq.backend.core.actions.permissions.fieldaccess.FieldAccessTier;
 import com.kingsrook.qqq.backend.core.actions.tables.InsertAction;
 import com.kingsrook.qqq.backend.core.actions.tables.QueryAction;
 import com.kingsrook.qqq.backend.core.context.QContext;
@@ -40,11 +38,12 @@ import com.kingsrook.qqq.backend.core.model.actions.values.SearchPossibleValueSo
 import com.kingsrook.qqq.backend.core.model.data.QRecord;
 import com.kingsrook.qqq.backend.core.model.metadata.QInstance;
 import com.kingsrook.qqq.backend.core.model.metadata.audits.AuditLevel;
+import com.kingsrook.qqq.backend.core.model.metadata.permissions.ClientChannelsMetaData;
+import com.kingsrook.qqq.backend.core.model.metadata.permissions.TableFeaturePermissionsMetaData;
 import com.kingsrook.qqq.backend.core.model.metadata.tables.Capability;
 import com.kingsrook.qqq.backend.core.model.metadata.tables.QTableMetaData;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.Test;
-
 import static com.kingsrook.qbits.secureddata.SecuredDataTestSupport.NOW;
 import static com.kingsrook.qbits.secureddata.SecuredDataTestSupport.RUNTIMES;
 import static com.kingsrook.qbits.secureddata.SecuredDataTestSupport.base;

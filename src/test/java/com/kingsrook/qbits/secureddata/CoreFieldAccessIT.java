@@ -35,8 +35,6 @@ import com.kingsrook.qqq.backend.core.model.actions.tables.query.QueryInput;
 import com.kingsrook.qqq.backend.core.model.data.QRecord;
 import com.kingsrook.qqq.backend.core.model.metadata.QInstance;
 import org.junit.jupiter.api.AfterEach;
-import org.junit.jupiter.api.Assumptions;
-import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
 import static com.kingsrook.qbits.secureddata.SecuredDataTestSupport.channelUser;
@@ -55,33 +53,12 @@ import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
 
 /*******************************************************************************
- ** Core field access bridge it.
+ ** Core field access integration tests.
  *******************************************************************************/
-class CoreFieldAccessBridgeIT
+class CoreFieldAccessIT
 {
    static final String EMAIL = "CANARY-EMAIL-918273@example.invalid";
    static final String SSN = "CANARY-PHI-192837465";
-
-   /*******************************************************************************
-    ** Require core.
-    *******************************************************************************/
-   @BeforeEach
-   void requireCore()
-   {
-      boolean available;
-      try
-      {
-         Class.forName("com.kingsrook.qqq.backend.core.actions.permissions.fieldaccess.FieldAccessResolverMetaData");
-         available = true;
-      }
-      catch(ClassNotFoundException expected)
-      {
-         available = false;
-      }
-      Assumptions.assumeTrue(available, "QQQ field-access core (#1172) is not on this classpath");
-   }
-
-
 
    /*******************************************************************************
     ** Cleanup.

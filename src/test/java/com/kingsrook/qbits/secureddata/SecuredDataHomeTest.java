@@ -88,8 +88,8 @@ class SecuredDataHomeTest
       delete(SecuredDataTables.POLICY, policy);
       classification("email", "PII");
       var logger = SecuredDataRuntime.current().logger();
-      logger.onAccess(SecuredDataAccessLoggerTest.event(com.kingsrook.qbits.secureddata.standin.FieldAccessEventType.VIEW, null, null));
-      logger.onAccess(SecuredDataAccessLoggerTest.event(com.kingsrook.qbits.secureddata.standin.FieldAccessEventType.VIEW, null, null));
+      logger.onAccess(SecuredDataAccessLoggerTest.event(com.kingsrook.qqq.backend.core.actions.permissions.fieldaccess.FieldAccessEventType.VIEW, null, null));
+      logger.onAccess(SecuredDataAccessLoggerTest.event(com.kingsrook.qqq.backend.core.actions.permissions.fieldaccess.FieldAccessEventType.VIEW, null, null));
       var data = SecuredDataHomeData.load();
       assertThat(data.getKpis()).containsEntry("Reveals today", 15L).containsEntry("Active reveal grants", 1L)
          .containsEntry("Active break-glass sessions", 1L).containsEntry("Anomaly flags (7 days)", 1L)

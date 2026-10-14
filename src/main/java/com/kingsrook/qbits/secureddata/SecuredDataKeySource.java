@@ -37,9 +37,10 @@ import java.util.Map;
 import java.util.Optional;
 import com.kingsrook.qbits.secureddata.metadata.SecuredDataTables;
 import com.kingsrook.qbits.secureddata.retention.RetentionRules;
-import com.kingsrook.qbits.secureddata.standin.ClassifiedValueKeySource;
 import com.kingsrook.qbits.secureddata.support.SystemWrites;
 import com.kingsrook.qqq.backend.core.actions.ai.DataClassification;
+import com.kingsrook.qqq.backend.core.actions.permissions.fieldaccess.ClassifiedValueKeySource;
+import com.kingsrook.qqq.backend.core.actions.permissions.fieldaccess.ClassifiedValueTokens;
 import com.kingsrook.qqq.backend.core.actions.tables.QueryAction;
 import com.kingsrook.qqq.backend.core.context.QContext;
 import com.kingsrook.qqq.backend.core.exceptions.QException;
@@ -280,7 +281,7 @@ public final class SecuredDataKeySource implements ClassifiedValueKeySource, Aut
       instanceOnly.set(true);
       try
       {
-         return (CoreAuditBridge.token(table, field, pk, value));
+         return (ClassifiedValueTokens.forRecordField(table, field, pk, value));
       }
       finally
       {

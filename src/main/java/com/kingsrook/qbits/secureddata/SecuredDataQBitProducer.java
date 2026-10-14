@@ -29,7 +29,10 @@ import com.kingsrook.qbits.secureddata.metadata.SecuredDataTableCustomizers;
 import com.kingsrook.qbits.secureddata.metadata.SecuredDataTables;
 import com.kingsrook.qbits.secureddata.support.SecuredDataMetadata;
 import com.kingsrook.qqq.backend.core.actions.ai.DataClassification;
+import com.kingsrook.qqq.backend.core.actions.audits.AuditValueProtectionMetaData;
 import com.kingsrook.qqq.backend.core.actions.customizers.TableCustomizers;
+import com.kingsrook.qqq.backend.core.actions.permissions.fieldaccess.ClassifiedValueKeySourceMetaData;
+import com.kingsrook.qqq.backend.core.actions.permissions.fieldaccess.FieldAccessResolverMetaData;
 import com.kingsrook.qqq.backend.core.exceptions.QException;
 import com.kingsrook.qqq.backend.core.model.metadata.MetaDataProducerMultiOutput;
 import com.kingsrook.qqq.backend.core.model.metadata.QInstance;
@@ -38,7 +41,6 @@ import com.kingsrook.qqq.backend.core.model.metadata.fields.QFieldMetaData;
 import com.kingsrook.qqq.backend.core.model.metadata.qbits.QBitMetaData;
 import com.kingsrook.qqq.backend.core.model.metadata.qbits.QBitMetaDataProducer;
 import com.kingsrook.qqq.backend.core.model.metadata.tables.QTableMetaData;
-
 
 /*******************************************************************************
  ** Entry point for secured-data policy, classification and access logging.
@@ -171,8 +173,9 @@ public class SecuredDataQBitProducer implements QBitMetaDataProducer<SecuredData
       runtime.addSelfToInstance(qInstance);
       try
       {
-         CoreFieldAccessBridge.register(qInstance, runtime.resolver());
-         CoreAuditBridge.register(qInstance, runtime);
+         FieldAccessResolverMetaData.ofOrWithNew(qInstance).withResolverInstance(runtime.resolver());
+         ClassifiedValueKeySourceMetaData.ofOrWithNew(qInstance).withKeySourceInstance(runtime.keys());
+         AuditValueProtectionMetaData.ofOrWithNew(qInstance).withProtectorInstance(new SecuredDataAuditProtector());
       }
       catch(RuntimeException e)
       {

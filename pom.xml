@@ -22,8 +22,8 @@
 <project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
 
    <properties>
-      <!-- Released APIs; fieldaccess and audit protection remain RC.7 stand-ins. -->
-      <qqq.snapshot.version>4.1.0-RC.6</qqq.snapshot.version>
+      <!-- set to the first QQQ RC that ships #1172 and #1182 (RC.7 expected) -->
+      <qqq.snapshot.version>4.1.0-SECUREDATA-SNAPSHOT</qqq.snapshot.version>
       <revision>1.0.0-SNAPSHOT</revision>
       <maven.compiler.source>21</maven.compiler.source>
       <maven.compiler.target>21</maven.compiler.target>

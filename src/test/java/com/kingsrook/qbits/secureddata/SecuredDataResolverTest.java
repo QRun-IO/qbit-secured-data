@@ -23,12 +23,12 @@ package com.kingsrook.qbits.secureddata;
 
 import java.util.List;
 import com.kingsrook.qbits.secureddata.metadata.SecuredDataTables;
-import com.kingsrook.qqq.backend.core.actions.ai.AiTableMetaData;
-import com.kingsrook.qqq.backend.core.actions.ai.DataClassification;
-import com.kingsrook.qbits.secureddata.standin.FieldAccessTier;
-import com.kingsrook.qbits.secureddata.standin.FieldMaskStyle;
 import com.kingsrook.qbits.secureddata.support.SecuredDataMetadata;
 import com.kingsrook.qbits.secureddata.support.SystemWrites;
+import com.kingsrook.qqq.backend.core.actions.ai.AiTableMetaData;
+import com.kingsrook.qqq.backend.core.actions.ai.DataClassification;
+import com.kingsrook.qqq.backend.core.actions.permissions.fieldaccess.FieldAccessTier;
+import com.kingsrook.qqq.backend.core.actions.permissions.fieldaccess.FieldMaskStyle;
 import com.kingsrook.qqq.backend.core.context.QContext;
 import com.kingsrook.qqq.backend.core.model.data.QRecord;
 import com.kingsrook.qqq.backend.core.model.metadata.fields.QFieldMetaData;
@@ -39,7 +39,6 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.CsvSource;
-
 import static com.kingsrook.qbits.secureddata.SecuredDataTestSupport.CLOCK;
 import static com.kingsrook.qbits.secureddata.SecuredDataTestSupport.NOW;
 import static com.kingsrook.qbits.secureddata.SecuredDataTestSupport.channelUser;

@@ -4,11 +4,11 @@ Phases (b), (c), (e) and (f) of [SECURED-DATA](https://github.com/QRun-IO/qqq/bl
 
 ## Compatibility
 
-Java 21, Maven wrapper 3.9.11, **QQQ 4.1.0-RC.6**.
+Java 21, Maven wrapper 3.9.11, and the first **QQQ RC that includes #1172 and #1182 (RC.7 expected)**. Until that RC is available, the build uses the locally installed `4.1.0-SECUREDATA-SNAPSHOT`.
 
-RC.6 supplies core classifications, AI metadata, client channels, table-feature permissions and the UI API extension points. These are used directly; the UI API and its contract test are part of the main build. The installed middleware jar provides `UiApiContract`, but no `UiApiContractAssertions` facade, so the contract test calls that released API directly.
+Core classifications, AI metadata, client channels, table-feature permissions and UI API extension points are used directly. The UI API and its contract test are part of the main build; the contract test calls `UiApiContract` directly.
 
-Field access (#1172) and audit-value protection (#1182) are not in RC.6. Field-access stand-ins and `CoreFieldAccessBridge` remain until the first QQQ RC that ships both #1172 and #1182 (expected RC.8). RC.6 **does not enforce field tiers**. Integration tests can use `4.1.0-SECUREDATA-SNAPSHOT`.
+Field access (#1172), classified-value tokens and audit-value protection (#1182) use core types directly. The producer registers the resolver, key source and audit protector through core supplemental metadata; QQQ core enforces field tiers.
 
 ## Install and register
 
@@ -159,10 +159,9 @@ Configure before producing the QBit; runtime infrastructure and HMAC keys are ca
 
 ```powershell
 ./mvnw.cmd -q -o clean verify
-./mvnw.cmd -q -o clean verify -Dqqq.snapshot.version=4.1.0-SECUREDATA-SNAPSHOT
 ```
 
-The direct suite uses memory and H2. `CoreFieldAccessBridgeIT` is included by Surefire and uses JUnit assumptions to skip unless the actual core resolver metadata is present. With the installed core snapshot it exercises Query/Get, policy tiers, masking, exact matches and outcomes, sorting denial, rate/entropy refusal and the assistant wall. Checkstyle and JaCoCo remain 70% instructions / 90% classes; stand-ins are not excluded.
+The suite uses memory and H2. `CoreFieldAccessIT` runs unconditionally through Surefire and exercises Query/Get, policy tiers, masking, exact matches and outcomes, sorting denial, rate/entropy refusal and the assistant wall. `RetentionProofTest` also runs unconditionally. Checkstyle and JaCoCo gates remain 70% instructions / 90% classes.
 
 ## Anomaly monitoring (phase e)
 
@@ -243,11 +242,11 @@ Each is read from a JVM property or the environment and is never logged. Losing 
 
 ### Core hooks
 
-Audit-value protection (QRun-IO/qqq#1182) and the wipe audit flag need core classes that are not in RC.6. On RC.6 the qbit uses marked stand-ins (`removeBy=RC.8`), writes value-free wipe audit details itself, and core does not tokenise ordinary audits. Run the build with `-Dqqq.snapshot.version=4.1.0-SECUREDATA-SNAPSHOT` to exercise the real hooks, including the section 15 canary and wipe-proof tests (`RetentionProofTest`), which skip themselves when the hooks are absent.
+Audit-value protection, wipe audit flags and shredded audit events use the core #1182 APIs directly. Core tokenises ordinary audits and writes value-free wipe details. The section 15 canary and wipe-proof tests (`RetentionProofTest`) are mandatory in the normal build.
 
 ## Remaining phases
 
-RC.6 migration is complete; field-access and audit-token compatibility types remain until RC.8.
+Field-access and audit-token stand-ins and reflective bridges have been removed. The coordinator will replace the temporary snapshot pin with the first QQQ RC containing #1172 and #1182.
 
 ## License
 

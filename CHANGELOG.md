@@ -4,6 +4,12 @@ All notable changes are documented here, following [Keep a Changelog](https://ke
 
 ## [Unreleased]
 
+### Changed — direct core field access and audit protection
+- Remove all #1172/#1182 stand-ins and reflective bridges; use core field-access, classified-value token, audit protection, wipe flag and shredded-event APIs directly.
+- Register the resolver, key source and audit protector through core supplemental metadata.
+- Run core field-access integration and retention proof tests unconditionally.
+- Temporarily pin QQQ to `4.1.0-SECUREDATA-SNAPSHOT`, pending the first RC with #1172 and #1182 (RC.7 expected).
+
 ### Changed â€” RC.6 migration
 - Pin QQQ to 4.1.0-RC.6; use released classification, client-channel and table-feature APIs directly.
 - Fold UI API code and tests into the main build and remove the profile and reflective registration.
