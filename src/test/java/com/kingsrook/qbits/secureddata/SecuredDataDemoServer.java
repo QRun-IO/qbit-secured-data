@@ -27,7 +27,9 @@ import com.kingsrook.qbits.secureddata.support.ActivityLog;
 import com.kingsrook.qqq.backend.core.context.QContext;
 import com.kingsrook.qqq.backend.core.instances.AbstractQQQApplication;
 import com.kingsrook.qqq.backend.core.model.data.QRecord;
+import com.kingsrook.qqq.backend.core.model.metadata.QAuthenticationType;
 import com.kingsrook.qqq.backend.core.model.metadata.QInstance;
+import com.kingsrook.qqq.backend.core.model.metadata.authentication.QAuthenticationMetaData;
 import com.kingsrook.qqq.backend.core.model.metadata.code.QCodeReference;
 import com.kingsrook.qqq.backend.core.model.session.QSession;
 import com.kingsrook.qqq.backend.core.model.session.QUser;
@@ -98,7 +100,9 @@ public class SecuredDataDemoServer
    public static void main(String[] args) throws Exception
    {
       QInstance instance = setup();
+      instance.withInstanceDefaultAuthentication(new QAuthenticationMetaData().withName("mock").withType(QAuthenticationType.MOCK));
       instance.getAuthentication().setCustomizer(new QCodeReference(Sessions.class));
+      instance.setHomeAppName("secured_data");
       QContext.setQSession(user("demo-admin", "secured_data.admin"));
       seedDemo();
       new QApplicationJavalinServer(new AbstractQQQApplication()
