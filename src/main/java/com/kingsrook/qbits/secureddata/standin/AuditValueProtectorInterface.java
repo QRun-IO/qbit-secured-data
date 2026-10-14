@@ -1,6 +1,6 @@
 /*
  * QQQ - Low-code Application Framework for Engineers.
- * Copyright (C) 2021-2025.  Kingsrook, LLC
+ * Copyright (C) 2021-2026.  Kingsrook, LLC
  * 651 N Broad St Ste 205 # 6917 | Middletown DE 19709 | United States
  * contact@kingsrook.com
  * https://github.com/Kingsrook/
@@ -21,46 +21,30 @@
 package com.kingsrook.qbits.secureddata.standin;
 
 
-import java.util.Locale;
-import com.kingsrook.qqq.backend.core.model.session.QSession;
+import java.io.Serializable;
+import com.kingsrook.qbits.secureddata.standin.DMLType;
+import com.kingsrook.qqq.backend.core.actions.ai.AiDataClassifications;
+import com.kingsrook.qqq.backend.core.actions.ai.DataClassification;
+import com.kingsrook.qqq.backend.core.model.metadata.fields.QFieldMetaData;
+import com.kingsrook.qqq.backend.core.model.metadata.tables.QTableMetaData;
 
 
 /*******************************************************************************
- ** RC.5 host adapter for a trusted, server-supplied client channel.
+ ** Application hook for audit tokens and effective classification. Never return plain values.
  *******************************************************************************/
-// STAND-IN(core=QRun-IO/qqq#1141, removeBy=RC.6): copy of com.kingsrook.qqq.backend.core.model.session.QSession client channel properties; delete when the pin moves to RC.6.
-public class ClientChannelSession extends QSession
+// STAND-IN(core=QRun-IO/qqq#1182, removeBy=RC.7)
+public interface AuditValueProtectorInterface
 {
-   private String clientChannel;
-
-
+   /*******************************************************************************
+    ** Protect the values in the current action's transaction before audit insertion.
+    *******************************************************************************/
+   ProtectedAuditValues protect(QTableMetaData table, QFieldMetaData field, Serializable primaryKey, Serializable oldValue, Serializable newValue, DMLType dmlType);
 
    /*******************************************************************************
-    ** Trusted host channel value; never take this from an unvalidated request.
+    ** Override to use an application-owned classification source.
     *******************************************************************************/
-   public ClientChannelSession withClientChannel(String clientChannel)
+   default DataClassification classificationOf(QTableMetaData table, QFieldMetaData field)
    {
-      this.clientChannel = clientChannel;
-      return (this);
-   }
-
-
-
-   /*******************************************************************************
-    ** Full channel including optional request detail.
-    *******************************************************************************/
-   public String getClientChannel()
-   {
-      return (clientChannel);
-   }
-
-
-
-   /*******************************************************************************
-    ** Normalized channel for policy matching.
-    *******************************************************************************/
-   public String getClientChannelName()
-   {
-      return (clientChannel == null || clientChannel.isBlank() ? null : clientChannel.strip().split("/", 2)[0].toLowerCase(Locale.ROOT));
+      return (AiDataClassifications.ofField(table, field.getName()));
    }
 }

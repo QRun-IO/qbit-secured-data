@@ -27,7 +27,7 @@ import com.kingsrook.qqq.backend.core.model.actions.tables.query.QCriteriaOperat
 /*******************************************************************************
  ** Effective field access, ordered from least to most restrictive.
  *******************************************************************************/
-// STAND-IN(core=QRun-IO/qqq#1172, removeBy=RC.6): copy of com.kingsrook.qqq.backend.core.actions.permissions.fieldaccess.FieldAccessTier; delete when the pin moves to RC.6.
+// STAND-IN(core=QRun-IO/qqq#1172, removeBy=RC.7): copy of com.kingsrook.qqq.backend.core.actions.permissions.fieldaccess.FieldAccessTier; delete when the pin moves to RC.7.
 public enum FieldAccessTier
 {
    FULL, REVEALABLE, MASKED, HIDDEN;

@@ -23,9 +23,9 @@ package com.kingsrook.qbits.secureddata.metadata;
 
 import java.util.ArrayList;
 import java.util.List;
-import com.kingsrook.qbits.secureddata.standin.DataClassification;
 import com.kingsrook.qbits.secureddata.standin.FieldAccessTier;
 import com.kingsrook.qbits.secureddata.standin.FieldMaskStyle;
+import com.kingsrook.qqq.backend.core.actions.ai.DataClassification;
 import com.kingsrook.qqq.backend.core.model.metadata.fields.QFieldType;
 import com.kingsrook.qqq.backend.core.model.metadata.possiblevalues.QPossibleValue;
 import com.kingsrook.qqq.backend.core.model.metadata.possiblevalues.QPossibleValueSource;

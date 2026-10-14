@@ -21,6 +21,10 @@
 package com.kingsrook.qbits.secureddata;
 
 import java.nio.file.Path;
+import java.nio.file.Files;
+import com.kingsrook.qqq.middleware.javalin.specs.v1.MiddlewareVersionV1;
+import com.kingsrook.qqq.middleware.javalin.tools.UiApiContract;
+import static org.assertj.core.api.Assertions.assertThat;
 import com.kingsrook.qbits.secureddata.uiapi.SecuredDataExtension;
 import org.junit.jupiter.api.Test;
 
@@ -29,6 +33,12 @@ class SecuredDataUiApiContractTest
    @Test
    void committedContractMatches() throws Exception
    {
-      UiApiContractAssertions.assertExtensionMatchesCommitted(SecuredDataExtension.defineExtension(), Path.of("src/main/resources/openapi/qqq-v1/secured-data.yaml"));
+      Path path = Path.of("src/main/resources/openapi/qqq-v1/secured-data.yaml");
+      String generated = UiApiContract.generateExtensionYaml(new MiddlewareVersionV1(), SecuredDataExtension.defineExtension());
+      if(Boolean.getBoolean("qqq.uiApi.regenerate"))
+      {
+         Files.writeString(path, generated);
+      }
+      assertThat(UiApiContract.check(generated, Files.readString(path), null, 1, "Regenerate secured-data.yaml")).isEmpty();
    }
 }

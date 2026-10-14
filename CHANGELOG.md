@@ -4,6 +4,22 @@ All notable changes are documented here, following [Keep a Changelog](https://ke
 
 ## [Unreleased]
 
+### Changed — RC.6 migration
+- Pin QQQ to 4.1.0-RC.6; use released classification, client-channel and table-feature APIs directly.
+- Fold UI API code and tests into the main build and remove the profile and reflective registration.
+- Remove released-API stand-ins and the local contract assertion facade; retain #1172 field-access stand-ins with RC.7 removal markers.
+
+### Added: phase (f) retention and wipe
+- Retention rules, wipe markers, legal holds, wipe runs and a hidden, locked audit-key table, with the `secured_data.retention` permission and a "Retention rules" navigation entry.
+- Actions NULL_WITH_MARKER, OVERWRITE_TEXT, KEYED_HASH, DELETE_RECORD and ARCHIVE_THEN_WIPE (host `ArchiveSinkInterface`), with validation and low-entropy refusal.
+- Atomic wipe batches (fields, markers, key deletions, audits, access log and run row in one rollback-capable transaction), per-record and per-table legal holds, a Review/Result "Run wipe now" process and a daily scheduled run.
+- Per-record-field AES-GCM wrapped DEKs (AAD-bound) for crypto-shredding of audit tokens, `CHANGED_ONLY` audit treatment, and the audit-value protector.
+- App-home warning when known backup retention exceeds a rule's `age_days`; `withBackupRetentionDays` and `withArchiveSink` options; README retention section and the backups residual risk.
+- Tests: all actions, holds, rollback, Review/Result, schedule, permissions, wrap/unwrap, and (on the SECUREDATA snapshot) the section 15 canary and wipe-proof tests.
+
+### Fixed
+- The key source returned a DEK array it then zeroed; it now returns copies, with a regression test.
+
 ### Added
 
 - Phase (e) configurable reveal-median, distinct-record and exact-match anomaly detection, with system access-log counters, bounded daily median caching, per-user/day alerts, and flags retained without an alert sink.

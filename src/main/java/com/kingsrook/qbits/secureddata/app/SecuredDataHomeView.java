@@ -53,6 +53,10 @@ public final class SecuredDataHomeView
          .append("\"><div style=\"font-size:1.6rem;font-weight:600\">").append(value)
          .append("</div><div>").append(esc(label)).append("</div></div>"));
       html.append("</div>");
+      for(String warning : data.getBackupWarnings())
+      {
+         html.append("<p role='alert'>").append(esc(warning)).append("</p>");
+      }
       for(SecuredDataHomeData.Section section : data.getSections())
       {
          html.append("<section style=\"").append(CARD).append("\"><h3 style=\"margin:0;font-size:1rem\">")

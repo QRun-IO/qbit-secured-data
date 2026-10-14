@@ -22,7 +22,8 @@
 <project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
 
    <properties>
-      <qqq.snapshot.version>4.1.0-RC.5</qqq.snapshot.version>
+      <!-- Released APIs; fieldaccess and audit protection remain RC.7 stand-ins. -->
+      <qqq.snapshot.version>4.1.0-RC.6</qqq.snapshot.version>
       <revision>1.0.0-SNAPSHOT</revision>
       <maven.compiler.source>21</maven.compiler.source>
       <maven.compiler.target>21</maven.compiler.target>
@@ -215,33 +216,4 @@
          </dependency>
       </dependencies>
    </dependencyManagement>
-   <profiles>
-      <!-- STAND-IN(core=QRun-IO/qqq#1128, removeBy=RC.6): fold these roots into main/test at RC.6. -->
-      <profile>
-         <id>uiapi</id>
-         <activation><property><name>uiapi</name><value>true</value></property></activation>
-         <build><plugins><plugin>
-            <groupId>org.apache.maven.plugins</groupId>
-            <artifactId>maven-checkstyle-plugin</artifactId>
-            <configuration>
-               <sourceDirectories>
-                  <sourceDirectory>${project.basedir}/src/main/java</sourceDirectory>
-                  <sourceDirectory>${project.basedir}/src/main/java-uiapi</sourceDirectory>
-               </sourceDirectories>
-            </configuration>
-         </plugin><plugin>
-            <groupId>org.codehaus.mojo</groupId>
-            <artifactId>build-helper-maven-plugin</artifactId>
-            <version>3.6.1</version>
-            <executions>
-               <execution><id>uiapi-source</id><phase>generate-sources</phase><goals><goal>add-source</goal></goals>
-                  <configuration><sources><source>src/main/java-uiapi</source></sources></configuration>
-               </execution>
-               <execution><id>uiapi-tests</id><phase>generate-test-sources</phase><goals><goal>add-test-source</goal></goals>
-                  <configuration><sources><source>src/test/java-uiapi</source></sources></configuration>
-               </execution>
-            </executions>
-         </plugin></plugins></build>
-      </profile>
-   </profiles>
 </project>

@@ -99,6 +99,14 @@ public class SecuredDataHomeData
          List.of("user_name", "table_name", "record_id", "action_name", "created_at"), List.of("User", "Table", "Record", "Action", "When"));
       data.recent("Anomaly flags", "No anomaly flags in the last 7 days", anomalies,
          List.of("user_name", "event_type", "table_name", "field_name", "created_at"), List.of("User", "Event", "Table", "Field", "When"));
+      for(QRecord rule : new QueryAction().execute(new QueryInput(SecuredDataTables.RETENTION_RULE)).getRecords())
+      {
+         String warning = com.kingsrook.qbits.secureddata.retention.RetentionRules.backupWarning(rule);
+         if(warning != null)
+         {
+            data.backupWarnings.add(rule.getValueString("name") + ": " + warning);
+         }
+      }
       return (data);
    }
 
@@ -181,5 +189,15 @@ public class SecuredDataHomeData
    public List<Section> getSections()
    {
       return (sections);
+   }
+
+   private final List<String> backupWarnings = new ArrayList<>();
+
+   /*******************************************************************************
+    ** One warning for each policy outlived by known physical backups.
+    *******************************************************************************/
+   public List<String> getBackupWarnings()
+   {
+      return (backupWarnings);
    }
 }
