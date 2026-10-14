@@ -88,7 +88,7 @@ class SecuredDataQBitProducerTest
    {
       QInstance instance = setup();
       assertThat(instance.getTables().keySet()).containsAll(SecuredDataTables.ALL);
-      assertThat(instance.getQBits().get("com.kingsrook.qbits:qbit-secured-data").getVersion()).isEqualTo("1.0.0");
+      assertThat(instance.getQBits().get("com.kingsrook.qbits:qbit-secured-data").getVersion()).isEqualTo("0.1.0");
       for(String name : SecuredDataTables.ALL)
       {
          QTableMetaData table = instance.getTable(name);

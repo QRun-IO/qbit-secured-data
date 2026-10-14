@@ -16,7 +16,7 @@ Field access (#1172), classified-value tokens and audit-value protection (#1182)
 <dependency>
    <groupId>com.kingsrook.qbits</groupId>
    <artifactId>qbit-secured-data</artifactId>
-   <version>1.0.0-SNAPSHOT</version>
+   <version>0.1.0-RC.1</version>
 </dependency>
 ```
 

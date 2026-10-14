@@ -49,7 +49,7 @@ public class SecuredDataQBitProducer implements QBitMetaDataProducer<SecuredData
 {
    public static final String GROUP_ID    = "com.kingsrook.qbits";
    public static final String ARTIFACT_ID = "qbit-secured-data";
-   public static final String VERSION     = "1.0.0";
+   public static final String VERSION     = "0.1.0";
 
    private SecuredDataQBitConfig qBitConfig;
    private String namespace;
