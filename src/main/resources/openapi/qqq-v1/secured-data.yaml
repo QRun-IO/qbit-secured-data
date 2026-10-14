@@ -1,0 +1,195 @@
+components:
+  schemas:
+    SecuredDataBreakGlassV1:
+      properties:
+        id:
+          type: "integer"
+        reason:
+          type: "string"
+        expiresAt:
+          format: "date-time"
+          type: "string"
+        scope:
+          nullable: true
+          type: "string"
+        ceiling:
+          type: "string"
+      type: "object"
+    SecuredDataErrorV1:
+      properties:
+        error:
+          type: "string"
+      type: "object"
+    SecuredDataRevealAllowanceV1:
+      properties:
+        tableName:
+          type: "string"
+        fieldName:
+          type: "string"
+        remainingDailyAllowance:
+          nullable: true
+          type: "integer"
+      type: "object"
+    SecuredDataRevealOptionsResponseV1:
+      properties:
+        reasonOptions:
+          items:
+            type: "string"
+          type: "array"
+        allowFreeTextReason:
+          type: "boolean"
+        requireFreeText:
+          type: "boolean"
+        revealMinutes:
+          type: "integer"
+        remainingDailyAllowance:
+          nullable: true
+          type: "integer"
+      type: "object"
+    SecuredDataRevealRequestV1:
+      description: "tableName, primaryKey and fieldName are required. Supply a policy\
+        \ reason or allowed free text; maximum 500 characters."
+      properties:
+        tableName:
+          type: "string"
+        fieldName:
+          type: "string"
+        primaryKey:
+          anyOf:
+          - type: "string"
+          - type: "number"
+          description: "Record primary key (string or number)."
+        reason:
+          maxLength: 500
+          nullable: true
+          type: "string"
+        reasonText:
+          maxLength: 500
+          nullable: true
+          type: "string"
+      type: "object"
+    SecuredDataRevealResponseV1:
+      properties:
+        value:
+          description: "Authorized raw field value."
+          nullable: true
+        displayValue:
+          nullable: true
+          type: "string"
+        expiresAt:
+          format: "date-time"
+          type: "string"
+        revealId:
+          type: "integer"
+      type: "object"
+    SecuredDataStatusResponseV1:
+      properties:
+        breakGlass:
+          $ref: "#/components/schemas/SecuredDataBreakGlassV1"
+          nullable: true
+        revealsUsedToday:
+          type: "integer"
+        revealAllowances:
+          items:
+            $ref: "#/components/schemas/SecuredDataRevealAllowanceV1"
+          type: "array"
+      type: "object"
+  securitySchemes:
+    sessionUuidCookie:
+      in: "cookie"
+      name: "sessionUUID"
+      type: "apiKey"
+info:
+  contact:
+    email: "contact@kingsrook.com"
+  description: "Reveal grants and break-glass status"
+  title: "QQQ Middleware API extension: secured-data"
+  version: "1.0.0"
+openapi: "3.0.3"
+paths:
+  /qqq/v1/qbit/secured-data/reveal:
+    post:
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/SecuredDataRevealRequestV1"
+        required: true
+      responses:
+        400:
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/SecuredDataErrorV1"
+          description: "Invalid reveal request"
+        403:
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/SecuredDataErrorV1"
+          description: "Reveal denied"
+        404:
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/SecuredDataErrorV1"
+          description: "Record not found or locked"
+        200:
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/SecuredDataRevealResponseV1"
+          description: "Successful Response"
+        429:
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/SecuredDataErrorV1"
+          description: "Daily reveal cap reached"
+      security:
+      - sessionUuidCookie:
+        - "N/A"
+      summary: "Reveal"
+      tags:
+      - "Secured data"
+  /qqq/v1/qbit/secured-data/reveal/options:
+    get:
+      parameters:
+      - in: "query"
+        name: "tableName"
+        required: true
+        schema:
+          type: "string"
+      - in: "query"
+        name: "fieldName"
+        required: true
+        schema:
+          type: "string"
+      responses:
+        200:
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/SecuredDataRevealOptionsResponseV1"
+          description: "Successful Response"
+      security:
+      - sessionUuidCookie:
+        - "N/A"
+      summary: "RevealOptions"
+      tags:
+      - "Secured data"
+  /qqq/v1/qbit/secured-data/status:
+    get:
+      responses:
+        200:
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/SecuredDataStatusResponseV1"
+          description: "Successful Response"
+      security:
+      - sessionUuidCookie:
+        - "N/A"
+      summary: "Status"
+      tags:
+      - "Secured data"
