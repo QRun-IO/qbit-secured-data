@@ -23,7 +23,7 @@ package com.kingsrook.qbits.secureddata.standin;
 /*******************************************************************************
  ** RC.6's nested DMLType is package-private; #1182 makes it public.
  *******************************************************************************/
-// STAND-IN(core=QRun-IO/qqq#1182, removeBy=RC.7)
+// STAND-IN(core=QRun-IO/qqq#1182, removeBy=RC.8)
 public enum DMLType
 {
    INSERT, UPDATE, DELETE, OTHER

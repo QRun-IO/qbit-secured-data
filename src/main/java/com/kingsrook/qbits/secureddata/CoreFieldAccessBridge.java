@@ -40,7 +40,7 @@ import com.kingsrook.qqq.backend.core.model.metadata.tables.QTableMetaData;
 /*******************************************************************************
  ** The only boundary between the temporary field-access API and unreleased core.
  *******************************************************************************/
-// STAND-IN(core=QRun-IO/qqq#1172, removeBy=RC.7)
+// STAND-IN(core=QRun-IO/qqq#1172, removeBy=RC.8)
 public final class CoreFieldAccessBridge
 {
    private static final String PACKAGE = "com.kingsrook.qqq.backend.core.actions.permissions.fieldaccess.";

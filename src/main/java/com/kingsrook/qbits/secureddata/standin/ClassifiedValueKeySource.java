@@ -28,7 +28,7 @@ import java.util.Optional;
 /*******************************************************************************
  ** Supplies instance keys and optional per-record, per-field shreddable keys.
  *******************************************************************************/
-// STAND-IN(core=QRun-IO/qqq#1182, removeBy=RC.7)
+// STAND-IN(core=QRun-IO/qqq#1182, removeBy=RC.8)
 public interface ClassifiedValueKeySource
 {
    /*******************************************************************************

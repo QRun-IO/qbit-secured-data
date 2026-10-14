@@ -32,7 +32,7 @@ import com.kingsrook.qqq.backend.core.model.metadata.tables.QTableMetaData;
 /*******************************************************************************
  ** Application hook for audit tokens and effective classification. Never return plain values.
  *******************************************************************************/
-// STAND-IN(core=QRun-IO/qqq#1182, removeBy=RC.7)
+// STAND-IN(core=QRun-IO/qqq#1182, removeBy=RC.8)
 public interface AuditValueProtectorInterface
 {
    /*******************************************************************************
