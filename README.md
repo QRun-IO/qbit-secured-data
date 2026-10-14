@@ -4,7 +4,7 @@ Field access for QQQ applications: FULL, REVEALABLE, MASKED and HIDDEN tiers by 
 
 ## Requirements
 
-Java 21 and QQQ 4.1.0-SNAPSHOT with the fieldaccess hooks. The Maven wrapper pins Maven 3.9.11.
+Java 21 and QQQ 4.1.0-RC.5 (RC.6 for the fieldaccess hooks). The Maven wrapper pins Maven 3.9.11.
 
 ## Install
 
