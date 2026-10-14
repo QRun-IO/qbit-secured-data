@@ -201,8 +201,8 @@
             <activeByDefault>true</activeByDefault>
          </activation>
          <properties>
-            <!-- TODO(secured-data): pin to the QQQ RC that ships the fieldaccess hooks (qqq feature/secured-data-core) -->
-            <qqq.snapshot.version>4.1.0-SNAPSHOT</qqq.snapshot.version>
+            <!-- Pinned to the latest released QQQ RC (secured-data#4). Raise to RC.6, which ships the fieldaccess hooks; local builds against unreleased core pass -Dqqq.snapshot.version=... -->
+            <qqq.snapshot.version>4.1.0-RC.5</qqq.snapshot.version>
          </properties>
          <dependencyManagement>
             <dependencies>
