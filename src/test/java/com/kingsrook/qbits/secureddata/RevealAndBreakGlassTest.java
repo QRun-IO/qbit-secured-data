@@ -31,7 +31,7 @@ import com.kingsrook.qbits.secureddata.metadata.SecuredDataTables;
 import com.kingsrook.qbits.secureddata.processes.BreakGlassProcesses;
 import com.kingsrook.qbits.secureddata.reveal.RevealCappedException;
 import com.kingsrook.qbits.secureddata.reveal.RevealService;
-import com.kingsrook.qbits.secureddata.standin.DataClassification;
+import com.kingsrook.qqq.backend.core.actions.ai.DataClassification;
 import com.kingsrook.qbits.secureddata.standin.FieldAccessTier;
 import com.kingsrook.qbits.secureddata.support.SystemWrites;
 import com.kingsrook.qqq.backend.core.actions.tables.GetAction;

@@ -25,7 +25,7 @@ import java.util.ArrayList;
 import java.util.List;
 import com.kingsrook.qbits.secureddata.SecuredDataQBitConfig;
 import com.kingsrook.qbits.secureddata.permissions.SecuredDataPermissions;
-import com.kingsrook.qbits.secureddata.support.CoreMetadataBridge;
+import com.kingsrook.qbits.secureddata.support.SecuredDataMetadata;
 import com.kingsrook.qqq.backend.core.actions.dashboard.widgets.ChildRecordListRenderer;
 import com.kingsrook.qqq.backend.core.model.metadata.QInstance;
 import com.kingsrook.qqq.backend.core.model.metadata.audits.AuditLevel;
@@ -58,9 +58,14 @@ public final class SecuredDataTables
    public static final String REVEAL_GRANT = "secured_data_reveal_grant";
    public static final String BREAK_GLASS = "secured_data_break_glass";
    public static final String ACCESS_LOG = "secured_data_access_log";
-   public static final List<String> ALL = List.of(CLASSIFICATION, POLICY, REVEAL_GRANT, BREAK_GLASS, ACCESS_LOG);
-   public static final List<String> MAIN = List.of(CLASSIFICATION, POLICY, ACCESS_LOG, BREAK_GLASS);
-   public static final List<String> SYSTEM_WRITTEN = List.of(REVEAL_GRANT, BREAK_GLASS, ACCESS_LOG);
+   public static final String RETENTION_RULE = "secured_data_retention_rule";
+   public static final String WIPE_MARKER = "secured_data_wipe_marker";
+   public static final String LEGAL_HOLD = "secured_data_legal_hold";
+   public static final String WIPE_RUN = "secured_data_wipe_run";
+   public static final String AUDIT_KEY = "secured_data_audit_key";
+   public static final List<String> ALL = List.of(CLASSIFICATION, POLICY, REVEAL_GRANT, BREAK_GLASS, ACCESS_LOG, RETENTION_RULE, WIPE_MARKER, LEGAL_HOLD, WIPE_RUN, AUDIT_KEY);
+   public static final List<String> MAIN = List.of(CLASSIFICATION, POLICY, ACCESS_LOG, BREAK_GLASS, RETENTION_RULE);
+   public static final List<String> SYSTEM_WRITTEN = List.of(REVEAL_GRANT, BREAK_GLASS, ACCESS_LOG, WIPE_MARKER, WIPE_RUN, AUDIT_KEY);
    public static final String REVEALS_JOIN = "secured_data_access_log_reveals";
    public static final String REVEALS_WIDGET = "securedDataReveals";
 
@@ -90,7 +95,9 @@ public final class SecuredDataTables
     *******************************************************************************/
    public static List<QTableMetaData> tables(SecuredDataQBitConfig config)
    {
-      return (List.of(classification(config), policy(config), revealGrant(config), breakGlass(config), accessLog(config)));
+      List<QTableMetaData> tables = new ArrayList<>(List.of(classification(config), policy(config), revealGrant(config), breakGlass(config), accessLog(config)));
+      tables.addAll(RetentionTables.tables(config));
+      return (tables);
    }
 
 
@@ -98,13 +105,13 @@ public final class SecuredDataTables
    /*******************************************************************************
     ** Common identity, audit and administration rules.
     *******************************************************************************/
-   private static QTableMetaData base(SecuredDataQBitConfig config, String name, String label)
+   static QTableMetaData base(SecuredDataQBitConfig config, String name, String label)
    {
       QTableMetaData table = new QTableMetaData().withName(name).withLabel(label).withBackendName(config.getBackendName())
          .withPrimaryKeyField("id").withField(new QFieldMetaData("id", QFieldType.INTEGER).withBackendName("id").withIsEditable(false))
          .withPermissionRules(SecuredDataPermissions.rules()).withIcon(new QIcon("shield"))
          .withAuditRules(new QAuditRules().withAuditLevel(AuditLevel.FIELD));
-      CoreMetadataBridge.classifyTable(table);
+      SecuredDataMetadata.classifyTable(table);
       if(ACCESS_LOG.equals(name))
       {
          table.withoutCapabilities(Capability.TABLE_UPDATE, Capability.TABLE_DELETE);
@@ -117,7 +124,7 @@ public final class SecuredDataTables
    /*******************************************************************************
     ** Every database column has an explicit snake_case name.
     *******************************************************************************/
-   private static QFieldMetaData field(String name, QFieldType type)
+   static QFieldMetaData field(String name, QFieldType type)
    {
       QFieldMetaData field = new QFieldMetaData(name, type).withBackendName(name).withLabel(name.replace('_', ' '));
       // TODO(contingent): dependsOn("table_name") once the core RC has it
@@ -253,9 +260,10 @@ public final class SecuredDataTables
          .withField(field("anomaly_flag", QFieldType.BOOLEAN).withDefaultValue(false))
          .withField(field("break_glass_id", QFieldType.INTEGER))
          .withField(field("created_at", QFieldType.DATE_TIME).withIsRequired(true))
-         .withField(field("search_value_fingerprints", QFieldType.TEXT));
+         .withField(field("search_value_fingerprints", QFieldType.TEXT))
+         .withField(field("rule_id", QFieldType.INTEGER));
       table.withSection(SectionFactory.defaultT1("id", "event_type", "user_id", "user_name"));
-      table.withSection(SectionFactory.defaultT2("table_name", "record_id", "field_name", "record_count", "action_name", "reason", "reason_text", "client_channel", "outcome", "anomaly_flag", "break_glass_id", "search_value_fingerprints"));
+      table.withSection(SectionFactory.defaultT2("table_name", "record_id", "field_name", "record_count", "action_name", "reason", "reason_text", "client_channel", "outcome", "anomaly_flag", "break_glass_id", "rule_id", "search_value_fingerprints"));
       table.withSection(SectionFactory.defaultT3("created_at"));
       table.withSection(SectionFactory.customT2("reveals", new QIcon("visibility")).withLabel("Reveals").withWidgetName(REVEALS_WIDGET));
       return (table);

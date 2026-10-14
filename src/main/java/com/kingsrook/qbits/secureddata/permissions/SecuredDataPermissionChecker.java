@@ -22,7 +22,7 @@ package com.kingsrook.qbits.secureddata.permissions;
 
 
 import com.kingsrook.qbits.secureddata.metadata.SecuredDataTables;
-import com.kingsrook.qbits.secureddata.support.CoreMetadataBridge;
+import com.kingsrook.qbits.secureddata.support.SecuredDataMetadata;
 import com.kingsrook.qqq.backend.core.actions.permissions.CustomPermissionChecker;
 import com.kingsrook.qqq.backend.core.context.QContext;
 import com.kingsrook.qqq.backend.core.exceptions.QPermissionDeniedException;
@@ -45,7 +45,7 @@ public class SecuredDataPermissionChecker implements CustomPermissionChecker
    public void checkPermissionsThrowing(AbstractActionInput input, MetaDataWithPermissionRules metadata) throws QPermissionDeniedException
    {
       boolean write = input instanceof InsertInput || input instanceof UpdateInput || input instanceof DeleteInput;
-      if(QContext.getQSession() == null || "assistant".equals(CoreMetadataBridge.channel(QContext.getQSession()))
+      if(QContext.getQSession() == null || "assistant".equals(SecuredDataMetadata.channel(QContext.getQSession()))
          || !QContext.getQSession().hasPermission(SecuredDataPermissions.ADMIN)
          || (write && SecuredDataTables.SYSTEM_WRITTEN.contains(metadata.getName())))
       {

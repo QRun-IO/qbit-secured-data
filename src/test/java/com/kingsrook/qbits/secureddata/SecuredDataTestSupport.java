@@ -30,9 +30,8 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.function.Consumer;
 import com.kingsrook.qbits.secureddata.metadata.SecuredDataTables;
-import com.kingsrook.qbits.secureddata.standin.ClientChannelSession;
-import com.kingsrook.qbits.secureddata.standin.DataClassification;
-import com.kingsrook.qbits.secureddata.support.CoreMetadataBridge;
+import com.kingsrook.qqq.backend.core.actions.ai.DataClassification;
+import com.kingsrook.qbits.secureddata.support.SecuredDataMetadata;
 import com.kingsrook.qbits.secureddata.support.SystemWrites;
 import com.kingsrook.qqq.backend.core.actions.tables.DeleteAction;
 import com.kingsrook.qqq.backend.core.actions.tables.UpdateAction;
@@ -124,8 +123,8 @@ final class SecuredDataTestSupport
          .withField(new QFieldMetaData("email", QFieldType.STRING).withMaxLength(255))
          .withField(new QFieldMetaData("ssn", QFieldType.STRING).withMaxLength(255))
          .withField(new QFieldMetaData("notes", QFieldType.TEXT));
-      CoreMetadataBridge.classifyField(table.getField("email"), DataClassification.PII);
-      CoreMetadataBridge.classifyField(table.getField("ssn"), DataClassification.PHI);
+      SecuredDataMetadata.classifyField(table.getField("email"), DataClassification.PII);
+      SecuredDataMetadata.classifyField(table.getField("ssn"), DataClassification.PHI);
       table.getFields().values().forEach(field -> field.setBackendName(field.getName()));
       return (table);
    }
@@ -149,16 +148,7 @@ final class SecuredDataTestSupport
     *******************************************************************************/
    static QSession channelUser(String channel, String... permissions) throws Exception
    {
-      QSession session;
-      try
-      {
-         session = new QSession();
-         QSession.class.getMethod("withClientChannel", String.class).invoke(session, channel);
-      }
-      catch(NoSuchMethodException expected)
-      {
-         session = new ClientChannelSession().withClientChannel(channel);
-      }
+      QSession session = new QSession().withClientChannel(channel);
       List<String> grants = new ArrayList<>(Arrays.asList(permissions));
       grants.add("person.read");
       return (session.withUser(new QUser().withIdReference("u1").withFullName("User One")).withPermissions(grants));

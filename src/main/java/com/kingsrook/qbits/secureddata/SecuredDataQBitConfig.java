@@ -29,8 +29,8 @@ import java.util.Map;
 import java.util.Objects;
 import java.util.Set;
 import java.util.function.Supplier;
-import com.kingsrook.qbits.secureddata.standin.DataClassification;
 import com.kingsrook.qbits.secureddata.standin.FieldAccessTier;
+import com.kingsrook.qqq.backend.core.actions.ai.DataClassification;
 import com.kingsrook.qqq.backend.core.model.metadata.producers.MetaDataCustomizerInterface;
 import com.kingsrook.qqq.backend.core.model.metadata.qbits.QBitConfig;
 import com.kingsrook.qqq.backend.core.model.metadata.tables.QTableMetaData;
@@ -49,6 +49,69 @@ public class SecuredDataQBitConfig implements QBitConfig
    private int anomalyExactMatchesPerHour = 50;
    private String tablePathPrefix = "/app";
    private String schedulerName;
+   private Integer backupRetentionDays;
+   private int wipeIntervalSeconds = 86400;
+   private com.kingsrook.qbits.secureddata.retention.ArchiveSinkInterface archiveSink;
+
+   /*******************************************************************************
+    ** Known CNPG/WAL backup retention; null means unknown.
+    *******************************************************************************/
+   public Integer getBackupRetentionDays()
+   {
+      return (backupRetentionDays);
+   }
+
+   /*******************************************************************************
+    ** Configure the physical backup recovery window.
+    *******************************************************************************/
+   public SecuredDataQBitConfig withBackupRetentionDays(Integer days)
+   {
+      if(days != null && days < 0)
+      {
+         throw (new IllegalArgumentException("Backup retention cannot be negative"));
+      }
+      backupRetentionDays = days;
+      return (this);
+   }
+
+   /*******************************************************************************
+    ** Optional archive adapter.
+    *******************************************************************************/
+   public com.kingsrook.qbits.secureddata.retention.ArchiveSinkInterface getArchiveSink()
+   {
+      return (archiveSink);
+   }
+
+   /*******************************************************************************
+    ** Supply a durable encrypted-object sink.
+    *******************************************************************************/
+   public SecuredDataQBitConfig withArchiveSink(com.kingsrook.qbits.secureddata.retention.ArchiveSinkInterface sink)
+   {
+      archiveSink = sink;
+      return (this);
+   }
+
+   /*******************************************************************************
+    ** Daily by default.
+    *******************************************************************************/
+   public int getWipeIntervalSeconds()
+   {
+      return (wipeIntervalSeconds);
+   }
+
+   /*******************************************************************************
+    ** Configure the host scheduler interval.
+    *******************************************************************************/
+   public SecuredDataQBitConfig withWipeIntervalSeconds(int seconds)
+   {
+      if(seconds < 1)
+      {
+         throw (new IllegalArgumentException("Wipe interval must be positive"));
+      }
+      wipeIntervalSeconds = seconds;
+      return (this);
+   }
+
    private String backendName = "memory";
    private Clock clock = Clock.systemUTC();
    private int accessLogQueueCapacity = 4096;

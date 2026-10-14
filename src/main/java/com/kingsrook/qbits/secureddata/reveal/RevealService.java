@@ -32,7 +32,7 @@ import com.kingsrook.qbits.secureddata.SecuredDataRuntime;
 import com.kingsrook.qbits.secureddata.metadata.SecuredDataTables;
 import com.kingsrook.qbits.secureddata.standin.FieldAccessTier;
 import com.kingsrook.qbits.secureddata.support.ActivityLog;
-import com.kingsrook.qbits.secureddata.support.CoreMetadataBridge;
+import com.kingsrook.qbits.secureddata.support.SecuredDataMetadata;
 import com.kingsrook.qbits.secureddata.support.SystemWrites;
 import com.kingsrook.qqq.backend.core.actions.permissions.CorePermissionEnforcer;
 import com.kingsrook.qqq.backend.core.actions.permissions.PermissionEnforcement;
@@ -77,7 +77,7 @@ public class RevealService
    private QRecord policy(String tableName, String fieldName) throws QException
    {
       requireTarget(tableName, fieldName);
-      if("assistant".equals(CoreMetadataBridge.channel(QContext.getQSession())))
+      if("assistant".equals(SecuredDataMetadata.channel(QContext.getQSession())))
       {
          throw (new QPermissionDeniedException("Reveal is unavailable on the assistant channel."));
       }
@@ -120,7 +120,7 @@ public class RevealService
       SecuredDataRuntime runtime = SecuredDataRuntime.current();
       synchronized(runtime)
       {
-         if("assistant".equals(CoreMetadataBridge.channel(QContext.getQSession())))
+         if("assistant".equals(SecuredDataMetadata.channel(QContext.getQSession())))
          {
             denied(tableName, primaryKey, fieldName, "DENIED");
             throw (new QPermissionDeniedException("Reveal is unavailable on the assistant channel."));

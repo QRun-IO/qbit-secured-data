@@ -32,7 +32,7 @@ import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.stream.IntStream;
 import com.kingsrook.qbits.secureddata.metadata.SecuredDataTables;
-import com.kingsrook.qbits.secureddata.standin.DataClassification;
+import com.kingsrook.qqq.backend.core.actions.ai.DataClassification;
 import com.kingsrook.qbits.secureddata.standin.FieldAccessEvent;
 import com.kingsrook.qbits.secureddata.standin.FieldAccessEventType;
 import com.kingsrook.qbits.secureddata.standin.FieldAccessOutcome;

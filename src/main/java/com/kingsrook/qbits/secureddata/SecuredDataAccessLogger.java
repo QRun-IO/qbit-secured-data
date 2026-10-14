@@ -41,7 +41,7 @@ import com.kingsrook.qbits.secureddata.metadata.SecuredDataTables;
 import com.kingsrook.qbits.secureddata.standin.FieldAccessEvent;
 import com.kingsrook.qbits.secureddata.standin.FieldAccessEventType;
 import com.kingsrook.qbits.secureddata.standin.FieldAccessOutcome;
-import com.kingsrook.qbits.secureddata.support.CoreMetadataBridge;
+import com.kingsrook.qbits.secureddata.support.SecuredDataMetadata;
 import com.kingsrook.qbits.secureddata.support.SystemWrites;
 import com.kingsrook.qqq.backend.core.alerts.AlertSignal;
 import com.kingsrook.qqq.backend.core.alerts.QAlerts;
@@ -179,7 +179,7 @@ public class SecuredDataAccessLogger implements AutoCloseable
          .withValue("user_name", session == null || session.getUser() == null ? null : session.getUser().getFullName())
          .withValue("table_name", event.getTableName()).withValue("field_name", String.join(",", fields))
          .withValue("record_count", event.getRecordCount()).withValue("action_name", event.getActionName())
-         .withValue("client_channel", CoreMetadataBridge.channel(session)).withValue("outcome", outcome)
+         .withValue("client_channel", SecuredDataMetadata.channel(session)).withValue("outcome", outcome)
          .withValue("anomaly_flag", false).withValue("created_at", runtime.config().getClock().instant());
       if(event.getPrimaryKeys() != null)
       {

@@ -26,7 +26,7 @@ package com.kingsrook.qbits.secureddata.standin;
 /*******************************************************************************
  ** Outcome of an exact-match search.
  *******************************************************************************/
-// STAND-IN(core=QRun-IO/qqq#1172, removeBy=RC.6): copy of com.kingsrook.qqq.backend.core.actions.permissions.fieldaccess.FieldAccessOutcome; delete when the pin moves to RC.6.
+// STAND-IN(core=QRun-IO/qqq#1172, removeBy=RC.7): copy of com.kingsrook.qqq.backend.core.actions.permissions.fieldaccess.FieldAccessOutcome; delete when the pin moves to RC.7.
 public enum FieldAccessOutcome
 {
    MATCH, NO_MATCH, REFUSED

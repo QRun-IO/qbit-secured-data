@@ -36,14 +36,14 @@ import java.util.Objects;
 import java.util.TreeSet;
 import com.kingsrook.qbits.secureddata.metadata.SecuredDataTables;
 import com.kingsrook.qbits.secureddata.permissions.SecuredDataPermissions;
-import com.kingsrook.qbits.secureddata.standin.DataClassification;
 import com.kingsrook.qbits.secureddata.standin.FieldAccessDecision;
 import com.kingsrook.qbits.secureddata.standin.FieldAccessEvent;
 import com.kingsrook.qbits.secureddata.standin.FieldAccessResolverInterface;
 import com.kingsrook.qbits.secureddata.standin.FieldAccessTier;
 import com.kingsrook.qbits.secureddata.standin.FieldMaskStyle;
-import com.kingsrook.qbits.secureddata.support.CoreMetadataBridge;
+import com.kingsrook.qbits.secureddata.support.SecuredDataMetadata;
 import com.kingsrook.qbits.secureddata.support.SystemWrites;
+import com.kingsrook.qqq.backend.core.actions.ai.DataClassification;
 import com.kingsrook.qqq.backend.core.context.QContext;
 import com.kingsrook.qqq.backend.core.exceptions.QPermissionDeniedException;
 import com.kingsrook.qqq.backend.core.model.actions.tables.query.QCriteriaOperator;
@@ -156,12 +156,12 @@ public class SecuredDataResolver implements FieldAccessResolverInterface
          {
             tier = runtime.config().defaultTier(classification);
          }
-         if(session != null && CoreMetadataBridge.hasFeature(table, SecuredDataPermissions.REVEAL))
+         if(session != null && SecuredDataMetadata.hasFeature(table, SecuredDataPermissions.REVEAL))
          {
             tier = tier.leastRestrictive(FieldAccessTier.REVEALABLE);
          }
          if(activeBreakGlass(table.getName(), classification) != null
-            || (session != null && CoreMetadataBridge.hasFeature(table, SecuredDataPermissions.FULL)))
+            || (session != null && SecuredDataMetadata.hasFeature(table, SecuredDataPermissions.FULL)))
          {
             tier = FieldAccessTier.FULL;
          }
@@ -268,7 +268,7 @@ public class SecuredDataResolver implements FieldAccessResolverInterface
     *******************************************************************************/
    private List<QRecord> matching(QTableMetaData table, DataClassification classification)
    {
-      String channel = CoreMetadataBridge.channel(QContext.getQSession());
+      String channel = SecuredDataMetadata.channel(QContext.getQSession());
       return (state().policies().stream().filter(row -> classification != null && classification.name().equals(row.getValueString("classification")))
          .filter(row -> blank(row.getValueString("table_name")) || table.getName().equals(row.getValueString("table_name")))
          .filter(row -> blank(row.getValueString("client_channel")) || Objects.equals(channel, row.getValueString("client_channel"))).toList());
@@ -372,7 +372,7 @@ public class SecuredDataResolver implements FieldAccessResolverInterface
       }
       for(QTableMetaData table : QContext.getQInstance().getTables().values())
       {
-         String base = CoreMetadataBridge.permissionBase(table);
+         String base = SecuredDataMetadata.permissionBase(table);
          for(String suffix : List.of(SecuredDataPermissions.FULL, SecuredDataPermissions.REVEAL))
          {
             if(session != null && session.hasPermission(base + "." + suffix))
@@ -383,7 +383,7 @@ public class SecuredDataResolver implements FieldAccessResolverInterface
       }
       List<String> breaks = activeBreakGlass().stream().map(row -> row.getValueString("id")).sorted().toList();
       String payload = JsonUtils.toJson(List.of(userId(), relevant, runtime.policyVersion(), runtime.classificationVersion(), breaks,
-         Objects.requireNonNullElse(CoreMetadataBridge.channel(session), "")));
+         Objects.requireNonNullElse(SecuredDataMetadata.channel(session), "")));
       try
       {
          return (Base64.getUrlEncoder().withoutPadding().encodeToString(MessageDigest.getInstance("SHA-256").digest(payload.getBytes(StandardCharsets.UTF_8))));

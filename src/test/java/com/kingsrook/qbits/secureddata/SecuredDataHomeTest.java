@@ -57,7 +57,7 @@ class SecuredDataHomeTest
       var app = instance.getApp("secured_data");
       assertThat(app.getWidgets()).containsExactly(SecuredDataApp.HOME_WIDGET);
       assertThat(app.getChildren()).extracting(c -> c.getName()).containsExactly(SecuredDataTables.CLASSIFICATION, SecuredDataTables.POLICY,
-         SecuredDataTables.ACCESS_LOG, SecuredDataTables.BREAK_GLASS);
+         SecuredDataTables.ACCESS_LOG, SecuredDataTables.BREAK_GLASS, SecuredDataTables.RETENTION_RULE);
       assertThat(instance.getTable(SecuredDataTables.ACCESS_LOG).getSections()).anyMatch(s -> SecuredDataTables.REVEALS_WIDGET.equals(s.getWidgetName()));
    }
 

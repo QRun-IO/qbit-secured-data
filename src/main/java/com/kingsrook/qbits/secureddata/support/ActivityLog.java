@@ -45,7 +45,7 @@ public final class ActivityLog
       return (new QRecord().withValue("event_type", event).withValue("table_name", table)
          .withValue("user_id", SecuredDataResolver.userId())
          .withValue("user_name", QContext.getQSession().getUser() == null ? "system" : QContext.getQSession().getUser().getFullName())
-         .withValue("client_channel", CoreMetadataBridge.channel(QContext.getQSession()))
+         .withValue("client_channel", SecuredDataMetadata.channel(QContext.getQSession()))
          .withValue("created_at", SecuredDataRuntime.current().config().getClock().instant())
          .withValue("outcome", outcome).withValue("anomaly_flag", false));
    }

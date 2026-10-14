@@ -1,16 +1,14 @@
 # QBit Secured Data
 
-Phases (b), (c), and (e) of [SECURED-DATA](https://github.com/QRun-IO/qqq/blob/develop/docs/SECURED-DATA.md): classification overrides, policy resolution, enumeration guardrails, and value-free access logging. QQQ core owns masking and query enforcement. Reveal, break-glass, the app home and anomaly alerts are implemented. Retention and audit-value protection remain later phases.
+Phases (b), (c), (e) and (f) of [SECURED-DATA](https://github.com/QRun-IO/qqq/blob/develop/docs/SECURED-DATA.md): classification overrides, policy resolution, enumeration guardrails, and value-free access logging. QQQ core owns masking and query enforcement. Reveal, break-glass, the app home and anomaly alerts are implemented. Retention, wipe and audit-value protection are implemented (phase f); see Retention and wipe.
 
 ## Compatibility
 
-Java 21, Maven wrapper 3.9.11, **QQQ 4.1.0-RC.5**. The released dependency pin is unchanged.
+Java 21, Maven wrapper 3.9.11, **QQQ 4.1.0-RC.6**.
 
-RC.5 contains AI exposure metadata, the alerts producer SPI and the tables picker. It does **not** contain field-access enforcement, `DataClassification`, classification properties on AI metadata, client channels, or table-feature permissions. Jar contents and embedded sources were inspected locally (`jar tf`; Git's `unzip` could not run in the Windows sandbox).
+RC.6 supplies core classifications, AI metadata, client channels, table-feature permissions and the UI API extension points. These are used directly; the UI API and its contract test are part of the main build. The installed middleware jar provides `UiApiContract`, but no `UiApiContractAssertions` facade, so the contract test calls that released API directly.
 
-Missing APIs live under `com.kingsrook.qbits.secureddata.standin`, with `STAND-IN` removal markers. `CoreFieldAccessBridge` registers a dynamic proxy only when core's `FieldAccessResolverMetaData` exists. It converts decision record components and event enums by name. On RC.5 it logs one INFO that enforcement requires RC.6+; installing this QBit on RC.5 **does not enforce field tiers**.
-
-`CoreMetadataBridge` promotes temporary classifications into core AI metadata when supported, registers the channel wall and table features reflectively, and uses core feature-permission checks when present. A missing API is supported; a present but incompatible API fails startup. The public classification API temporarily returns the stand-in `DataClassification` because the core enum is absent from RC.5. At RC.6, move these imports to core and delete the adapters/stand-ins.
+Field access (#1172) and audit-value protection (#1182) are not in RC.6. Field-access stand-ins and `CoreFieldAccessBridge` remain marked for RC.7. RC.6 **does not enforce field tiers**. Integration tests can use `4.1.0-SECUREDATA-SNAPSHOT`.
 
 ## Install and register
 
@@ -50,23 +48,23 @@ Every table has audit rules, explicit record sections and CONFIDENTIAL code clas
 
 Both table features are registered for **all tables**: `secured_data_full` (Secured data: full) and `secured_data_reveal` (Secured data: reveal). This deliberate catalog choice supports new admin classification rows without a restart. Core's permission-base, READ prerequisite and NOT_PROTECTED semantics are preserved: NOT_PROTECTED application tables grant their features without an explicit permission. Use protected table permission rules when field policies must restrict users. Feature grants have no standard WRITE/admin implication.
 
-The assistant is denied `secured_data_*` through core client-channel metadata. The local custom checker enforces the same wall on RC.5 when the trusted host uses `standin.ClientChannelSession`. On newer core use `QSession.withClientChannel("assistant/t1")`. The normalized channel `assistant` is stored in logs and used for policy caps. A host must set the channel from trusted request context.
+The assistant is denied `secured_data_*` through core client-channel metadata. Use `QSession.withClientChannel("assistant/t1")` from trusted request context. The normalized channel `assistant` is stored in logs and used for policy caps.
 
 ESB integration follows webhooks' host-wiring pattern: `SecuredDataTables.esbTableNames()` lists Classification, Policy, Access log and Break-glass. Connect those names to the host ESB table-event producer. No ESB or qbit-alerts dependency is added.
 
 ## Classifying fields
 
-Code metadata establishes defaults. While pinned to RC.5:
+Code metadata establishes defaults using the core APIs:
 
 ```java
-import com.kingsrook.qbits.secureddata.standin.AiFieldMetaData;
-import com.kingsrook.qbits.secureddata.standin.DataClassification;
+import com.kingsrook.qqq.backend.core.actions.ai.AiFieldMetaData;
+import com.kingsrook.qqq.backend.core.actions.ai.DataClassification;
 
 email.withSupplementalMetaData(
    new AiFieldMetaData().withClassification(DataClassification.PII));
 ```
 
-The matching stand-in `AiTableMetaData` sets a table default. These supplemental objects coexist with RC.5's core AI exposure metadata. The producer promotes them into core AI metadata when the newer API is available. After moving to RC.6, use `com.kingsrook.qqq.backend.core.actions.ai.AiFieldMetaData` and core `DataClassification` with the same classification pattern.
+Core `AiTableMetaData` sets a table default. Runtime classification rows take precedence over code metadata.
 
 Admin rows in Classification can raise **or lower** the default. Effective order:
 
@@ -129,7 +127,7 @@ The `secured-data` extension is version **1.0.0**:
 - `GET /qqq/v1/qbit/secured-data/reveal/options?tableName=&fieldName=`
 - `GET /qqq/v1/qbit/secured-data/status`
 
-Build with `-Duiapi=true` and a compatible core to compile `src/main/java-uiapi` and `src/test/java-uiapi`. The producer registers the extension only when both its classes and core's extension metadata exist. The committed contract is [secured-data.yaml](src/main/resources/openapi/qqq-v1/secured-data.yaml); regenerate intentionally with `-Dqqq.uiApi.regenerate=true`. The supplied core exposes `UiApiContract.check`, so a local test-only `UiApiContractAssertions` adapter supplies the documented assertion facade. All UI API roots and adapters are `STAND-IN(core=QRun-IO/qqq#1128, removeBy=RC.6)` and fold into the normal roots at RC.6. The core OpenAPI model cannot mark object properties required; the request schema documents required properties and the handler validates them.
+The producer registers the UI API extension directly. The committed contract is [secured-data.yaml](src/main/resources/openapi/qqq-v1/secured-data.yaml); regenerate intentionally with `-Dqqq.uiApi.regenerate=true`. Contract and HTTP tests run in the normal build.
 
 The classification field picker uses CUSTOM possible values, reading `table_name` or `tableName` from the form's other values. It returns only the selected readable table's labeled fields, returns none without a selection, and rejects an unknown table. TODO: add `dependsOn("table_name")` when the core metadata API supports it.
 
@@ -151,6 +149,8 @@ The classification field picker uses CUSTOM possible values, reading `table_name
 | `withDistinctValueAlert(int)` | 15; zero disables |
 | `withMinEntropyEnabled(boolean)` | true |
 | `withSchedulerName(String)` | Host scheduler for the 60-second break-glass expiry job; null means host-managed invocation |
+| `withBackupRetentionDays(Integer)` | Unknown; physical backup window in days, used for the retention warning (must not be negative) |
+| `withArchiveSink(ArchiveSinkInterface)` | None; required before any `ARCHIVE_THEN_WIPE` rule can run |
 | `withClock(Clock)` | UTC system clock; injectable for deterministic expiry tests |
 
 Configure before producing the QBit; runtime infrastructure and HMAC keys are captured at startup. Classification/policy/break-glass lookups always run as system, with a thread-local recursion guard. No reveal values are cached.
@@ -159,7 +159,7 @@ Configure before producing the QBit; runtime infrastructure and HMAC keys are ca
 
 ```powershell
 ./mvnw.cmd -q -o clean verify
-./mvnw.cmd -q -o clean verify -Dqqq.snapshot.version=4.1.0-SECUREDATA-SNAPSHOT -Duiapi=true
+./mvnw.cmd -q -o clean verify -Dqqq.snapshot.version=4.1.0-SECUREDATA-SNAPSHOT
 ```
 
 The direct suite uses memory and H2. `CoreFieldAccessBridgeIT` is included by Surefire and uses JUnit assumptions to skip unless the actual core resolver metadata is present. With the installed core snapshot it exercises Query/Get, policy tiers, masking, exact matches and outcomes, sorting denial, rate/entropy refusal and the assistant wall. Checkstyle and JaCoCo remain 70% instructions / 90% classes; stand-ins are not excluded.
@@ -191,7 +191,7 @@ The single Secured Data app owns one full-width HTML home widget, following qbit
 
 Lists order newest first with id tie-breaking; rankings order by count descending then group alphabetically. Narrow screens use wrapping labelled card rows. Dates stay compact on one line, text is ellipsized with full tooltips, and colors inherit the host with `--qqq-grid-border` for borders. There are no inner scrollers. Empty lists explicitly say there is no activity.
 
-Navigation contains Classification, Policy, Access log and Break-glass sessions. Reveal grants remain a child list; retention is not implemented. Successful policy/classification inserts, updates and deletes produce value-free change rows with actor, record id and action in the source transaction. No configuration values are copied into these rows.
+Navigation contains Classification, Policy, Access log, Break-glass sessions and Retention rules. Reveal grants remain a child list. A warning line appears under the KPIs for each active retention rule whose known backup retention exceeds its `age_days`. Successful policy/classification inserts, updates and deletes produce value-free change rows with actor, record id and action in the source transaction. No configuration values are copied into these rows.
 
 ### Local screenshot harness
 
@@ -205,9 +205,49 @@ java -cp $demoClasspath com.kingsrook.qbits.secureddata.SecuredDataDemoServer
 
 Open `http://localhost:8098/app/secured_data`. Stop the demo before `clean` on Windows. Capture light and dark at 390, 768, 1024, 1440, 1920 and 3200 px under `target/screenshots/`. This session started the server, but screenshot capture was blocked by Chromium `spawn EPERM` in the sandbox and two connected-browser timeouts. The coordinator still needs to capture and inspect the twelve images through Next.
 
+## Retention and wipe
+
+Spec: SECURED-DATA sections 13 to 15. Retention rules live in the **Retention rules** table (permission `secured_data.retention`). Each rule names a host table, the fields to wipe, an age field, `age_days`, a batch size, an action and an audit treatment.
+
+Actions:
+
+- `NULL_WITH_MARKER`: set the fields to null (fields must be nullable) and record a wipe marker.
+- `OVERWRITE_TEXT`: replace with the rule's text (STRING/TEXT fields only; the text must fit the field).
+- `KEYED_HASH`: replace with an instance-key HMAC token (`hmac:v1:...`) that the host can still verify. Refused for low-entropy fields and for fields shorter than 200 characters.
+- `DELETE_RECORD`: delete the record, with markers for every field.
+- `ARCHIVE_THEN_WIPE`: write the field values as AES-GCM encrypted JSON through the host `ArchiveSinkInterface` (an adapter to object storage, ideally a WORM bucket), then null them. The wipe is refused if no sink is configured.
+
+Audit treatment: `SHREDDABLE` (default) gives each audited record-field its own data key (DEK), so deleting the key makes the audit tokens unverifiable (crypto-shredding). `CHANGED_ONLY` stores only `changed:v1` in audits and never creates a DEK.
+
+Mechanics:
+
+- Eligibility is evaluated in the database and returns record ids only; values are read only for `KEYED_HASH` and `ARCHIVE_THEN_WIPE`.
+- Each batch is one transaction in a rollback-capable backend: field updates, wipe markers, audit-key deletions, audit details, the access-log `WIPE` rows and the run row commit or roll back together. Cross-backend or non-transactional deployments are refused before any write.
+- Legal holds (per record, or per table with a blank record id) skip records; age and holds are re-checked inside the batch.
+- **Run wipe now** is a standard Review/Result process with counts only; the hidden `secured_data_wipe_daily` process runs daily from the host scheduler (`withSchedulerName`). Neither places a host value in a message, log, run row or marker.
+- DEKs are wrapped with AES-GCM under the KEK, with the table, field and record id as additional authenticated data. A wrong KEK or a wrong binding fails the unwrap. The wrapped-key table is hidden, locked, not exportable and audited at level NONE.
+
+### Backups are a residual risk (section 14.3)
+
+A wipe removes the value and its audit key from the live database only. Database backups taken before the wipe still contain the value and the wrapped DEK, and remain recoverable until they expire. Set `withBackupRetentionDays(...)`; when it exceeds a rule's `age_days` the rule and the app home warn that wiped values stay recoverable from backups. Unknown retention is reported as unknown, not as safe. Backups that must be purged earlier have to be handled outside this qbit.
+
+### Keys and environment
+
+| Variable | Purpose |
+|---|---|
+| `QQQ_AUDIT_HMAC_KEY` | Base64 32-byte instance key for `hmac:v1:` audit tokens and `KEYED_HASH`. Without it audits fall back to `changed:v1`. |
+| `QQQ_AUDIT_HMAC_KEY_ID` | Optional id embedded in tokens, default `env1`; change it when rotating the key. |
+| `QQQ_SECURED_DATA_KEK` | Base64 32-byte key-encryption key that wraps the per-record DEKs and archive objects. Required for `SHREDDABLE` and archive; a missing or invalid KEK fails closed. |
+
+Each is read from a JVM property or the environment and is never logged. Losing the KEK makes every existing DEK unrecoverable, so protect and back it up separately from the database.
+
+### Core hooks
+
+Audit-value protection (QRun-IO/qqq#1182) and the wipe audit flag need core classes that are not in RC.6. On RC.6 the qbit uses marked stand-ins (`removeBy=RC.7`), writes value-free wipe audit details itself, and core does not tokenise ordinary audits. Run the build with `-Dqqq.snapshot.version=4.1.0-SECUREDATA-SNAPSHOT` to exercise the real hooks, including the section 15 canary and wipe-proof tests (`RetentionProofTest`), which skip themselves when the hooks are absent.
+
 ## Remaining phases
 
-RC.6 migration removes temporary types and reflection. Retention, wipe and audit-value protection remain phases (f)/(g).
+RC.6 migration is complete; field-access compatibility types remain until RC.7. Phase (g) remains.
 
 ## License
 

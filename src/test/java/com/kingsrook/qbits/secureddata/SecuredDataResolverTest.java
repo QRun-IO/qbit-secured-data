@@ -23,11 +23,11 @@ package com.kingsrook.qbits.secureddata;
 
 import java.util.List;
 import com.kingsrook.qbits.secureddata.metadata.SecuredDataTables;
-import com.kingsrook.qbits.secureddata.standin.AiTableMetaData;
-import com.kingsrook.qbits.secureddata.standin.DataClassification;
+import com.kingsrook.qqq.backend.core.actions.ai.AiTableMetaData;
+import com.kingsrook.qqq.backend.core.actions.ai.DataClassification;
 import com.kingsrook.qbits.secureddata.standin.FieldAccessTier;
 import com.kingsrook.qbits.secureddata.standin.FieldMaskStyle;
-import com.kingsrook.qbits.secureddata.support.CoreMetadataBridge;
+import com.kingsrook.qbits.secureddata.support.SecuredDataMetadata;
 import com.kingsrook.qbits.secureddata.support.SystemWrites;
 import com.kingsrook.qqq.backend.core.context.QContext;
 import com.kingsrook.qqq.backend.core.model.data.QRecord;
@@ -271,7 +271,7 @@ class SecuredDataResolverTest
    {
       QFieldMetaData field = new QFieldMetaData(name, QFieldType.valueOf(type)).withMaxLength(255);
       person.addField(field);
-      CoreMetadataBridge.classifyField(field, DataClassification.PII);
+      SecuredDataMetadata.classifyField(field, DataClassification.PII);
       assertThat(resolver.resolve(person, field).exactMatchAllowed()).isFalse();
       QRecord row = insert(SecuredDataTables.CLASSIFICATION, new QRecord().withValue("table_name", "person").withValue("field_name", name)
          .withValue("classification", "PII").withValue("low_cardinality", false).withValue("mask_style", "FULL"));

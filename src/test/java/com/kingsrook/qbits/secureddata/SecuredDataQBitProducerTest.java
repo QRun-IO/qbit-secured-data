@@ -26,11 +26,11 @@ import java.util.Map;
 import com.kingsrook.qbits.secureddata.metadata.FieldsOfTablePossibleValueSource;
 import com.kingsrook.qbits.secureddata.metadata.SecuredDataEnums;
 import com.kingsrook.qbits.secureddata.metadata.SecuredDataTables;
-import com.kingsrook.qbits.secureddata.standin.ClientChannelsMetaData;
-import com.kingsrook.qbits.secureddata.standin.DataClassification;
+import com.kingsrook.qqq.backend.core.model.metadata.permissions.ClientChannelsMetaData;
+import com.kingsrook.qqq.backend.core.actions.ai.DataClassification;
 import com.kingsrook.qbits.secureddata.standin.FieldAccessTier;
-import com.kingsrook.qbits.secureddata.standin.TableFeaturePermissionsMetaData;
-import com.kingsrook.qbits.secureddata.support.CoreMetadataBridge;
+import com.kingsrook.qqq.backend.core.model.metadata.permissions.TableFeaturePermissionsMetaData;
+import com.kingsrook.qbits.secureddata.support.SecuredDataMetadata;
 import com.kingsrook.qqq.backend.core.actions.tables.InsertAction;
 import com.kingsrook.qqq.backend.core.actions.tables.QueryAction;
 import com.kingsrook.qqq.backend.core.context.QContext;
@@ -93,19 +93,19 @@ class SecuredDataQBitProducerTest
       for(String name : SecuredDataTables.ALL)
       {
          QTableMetaData table = instance.getTable(name);
-         assertThat(table.getAuditRules().getAuditLevel()).isEqualTo(AuditLevel.FIELD);
+         assertThat(table.getAuditRules().getAuditLevel()).isEqualTo(name.equals(SecuredDataTables.AUDIT_KEY) ? AuditLevel.NONE : AuditLevel.FIELD);
          assertThat(table.getSections()).isNotEmpty();
-         assertThat(CoreMetadataBridge.classification(table, null)).isEqualTo(DataClassification.CONFIDENTIAL);
+         assertThat(SecuredDataMetadata.classification(table, null)).isEqualTo(DataClassification.CONFIDENTIAL);
          table.getFields().values().forEach(field -> assertThat(field.getBackendName()).isEqualTo(field.getName()));
       }
       assertThat(SecuredDataTables.esbTableNames()).containsExactlyElementsOf(SecuredDataTables.MAIN);
       assertThat(SecuredDataEnums.sources()).hasSize(6);
-      assertThat(ClientChannelsMetaData.ofOrWithNew(instance).getEntries()).containsEntry("assistant", "secured_data_*");
-      assertThat(TableFeaturePermissionsMetaData.ofOrWithNew(instance).getEntries()).containsKeys("secured_data_full", "secured_data_reveal");
+      assertThat(ClientChannelsMetaData.ofOrWithNew(instance).getDeniedPatterns().get("assistant")).contains("secured_data_*");
+      assertThat(TableFeaturePermissionsMetaData.ofOrWithNew(instance).getPermissions()).extracting("suffix").contains("secured_data_full", "secured_data_reveal");
       assertThat(instance.getTable(SecuredDataTables.ACCESS_LOG).getDisabledCapabilities()).contains(Capability.TABLE_UPDATE, Capability.TABLE_DELETE);
       assertThat(instance.getJoin(SecuredDataTables.REVEALS_JOIN)).isNotNull();
       assertThat(instance.getWidget(SecuredDataTables.REVEALS_WIDGET)).isNotNull();
-      assertThat(instance.getApp("secured_data").getChildren()).hasSize(4);
+      assertThat(instance.getApp("secured_data").getChildren()).hasSize(5);
    }
 
    /*******************************************************************************

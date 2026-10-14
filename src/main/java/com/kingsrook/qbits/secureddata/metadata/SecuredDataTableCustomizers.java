@@ -68,6 +68,20 @@ public class SecuredDataTableCustomizers implements TableCustomizerInterface
             record.getValues().forEach(effective::setValue);
             validate(table, record, effective);
             Instant now = SecuredDataRuntime.current().config().getClock().instant();
+            if(SecuredDataTables.LEGAL_HOLD.equals(table))
+            {
+               if(old == null)
+               {
+                  record.setValue("placed_at", now);
+                  record.setValue("placed_by", SecuredDataResolver.userId());
+               }
+               if("RELEASED".equals(effective.getValueString("status")))
+               {
+                  record.setValue("released_at", now);
+                  record.setValue("released_by", SecuredDataResolver.userId());
+               }
+               continue;
+            }
             if(old == null)
             {
                record.setValue("create_date", now);
@@ -86,7 +100,7 @@ public class SecuredDataTableCustomizers implements TableCustomizerInterface
     *******************************************************************************/
    private static void assertWrite(String table, boolean mutation) throws QPermissionDeniedException
    {
-      if((mutation && SecuredDataTables.ACCESS_LOG.equals(table))
+      if((mutation && List.of(SecuredDataTables.ACCESS_LOG, SecuredDataTables.WIPE_RUN).contains(table))
          || (SecuredDataTables.SYSTEM_WRITTEN.contains(table) && !SystemWrites.active() && !(QContext.getQSession() instanceof QSystemUserSession)))
       {
          throw (new QPermissionDeniedException("Secured-data activity is system-written; access logs are insert-only."));
@@ -106,7 +120,25 @@ public class SecuredDataTableCustomizers implements TableCustomizerInterface
       {
          record.addError(new BadInputStatusMessage("Select an existing table."));
       }
-      if(SecuredDataTables.CLASSIFICATION.equals(table))
+      if(SecuredDataTables.RETENTION_RULE.equals(table))
+      {
+         try
+         {
+            com.kingsrook.qbits.secureddata.retention.RetentionRules.validate(effective);
+         }
+         catch(IllegalArgumentException e)
+         {
+            record.addError(new BadInputStatusMessage(e.getMessage()));
+         }
+      }
+      else if(SecuredDataTables.LEGAL_HOLD.equals(table))
+      {
+         if(!List.of("ACTIVE", "RELEASED").contains(effective.getValueString("status")))
+         {
+            record.addError(new BadInputStatusMessage("Select ACTIVE or RELEASED."));
+         }
+      }
+      else if(SecuredDataTables.CLASSIFICATION.equals(table))
       {
          String field = effective.getValueString("field_name");
          if(field != null && field.isBlank())

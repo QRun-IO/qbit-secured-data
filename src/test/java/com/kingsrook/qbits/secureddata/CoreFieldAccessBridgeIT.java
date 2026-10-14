@@ -78,7 +78,7 @@ class CoreFieldAccessBridgeIT
       {
          available = false;
       }
-      Assumptions.assumeTrue(available, "QQQ RC.6 field-access core is not on this classpath");
+      Assumptions.assumeTrue(available, "QQQ RC.7 field-access core is not on this classpath");
    }
 
 

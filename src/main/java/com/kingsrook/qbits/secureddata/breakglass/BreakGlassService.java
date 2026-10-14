@@ -28,10 +28,10 @@ import com.kingsrook.qbits.secureddata.SecuredDataResolver;
 import com.kingsrook.qbits.secureddata.SecuredDataRuntime;
 import com.kingsrook.qbits.secureddata.metadata.SecuredDataTables;
 import com.kingsrook.qbits.secureddata.permissions.SecuredDataPermissions;
-import com.kingsrook.qbits.secureddata.standin.DataClassification;
 import com.kingsrook.qbits.secureddata.support.ActivityLog;
-import com.kingsrook.qbits.secureddata.support.CoreMetadataBridge;
+import com.kingsrook.qbits.secureddata.support.SecuredDataMetadata;
 import com.kingsrook.qbits.secureddata.support.SystemWrites;
+import com.kingsrook.qqq.backend.core.actions.ai.DataClassification;
 import com.kingsrook.qqq.backend.core.actions.tables.UpdateAction;
 import com.kingsrook.qqq.backend.core.alerts.AlertSeverity;
 import com.kingsrook.qqq.backend.core.alerts.AlertSignal;
@@ -235,7 +235,7 @@ public class BreakGlassService
    {
       if(QContext.getQSession() == null || QContext.getQSession().getUser() == null
          || "anonymous".equals(SecuredDataResolver.userId()) || SecuredDataResolver.userId().isBlank()
-         || "assistant".equals(CoreMetadataBridge.channel(QContext.getQSession())))
+         || "assistant".equals(SecuredDataMetadata.channel(QContext.getQSession())))
       {
          throw (new QPermissionDeniedException("Permission denied."));
       }

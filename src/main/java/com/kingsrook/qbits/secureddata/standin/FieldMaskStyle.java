@@ -26,7 +26,7 @@ package com.kingsrook.qbits.secureddata.standin;
 /*******************************************************************************
  ** Presentation rules for a restricted value.
  *******************************************************************************/
-// STAND-IN(core=QRun-IO/qqq#1172, removeBy=RC.6): copy of com.kingsrook.qqq.backend.core.actions.permissions.fieldaccess.FieldMaskStyle; delete when the pin moves to RC.6.
+// STAND-IN(core=QRun-IO/qqq#1172, removeBy=RC.7): copy of com.kingsrook.qqq.backend.core.actions.permissions.fieldaccess.FieldMaskStyle; delete when the pin moves to RC.7.
 public enum FieldMaskStyle
 {
    AUTO, EMAIL, LAST_4, FIRST_LAST, FULL

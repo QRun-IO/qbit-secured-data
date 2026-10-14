@@ -25,7 +25,7 @@ import com.kingsrook.qqq.middleware.javalin.specs.extensions.MiddlewareSpecExten
 import com.kingsrook.qqq.middleware.javalin.specs.extensions.MiddlewareSpecExtensionsMetaData;
 
 /*******************************************************************************
- ** STAND-IN(core=QRun-IO/qqq#1128, removeBy=RC.6): move to main source root.
+ ** Secured-data extension for the released UI API.
  *******************************************************************************/
 public final class SecuredDataExtension
 {
@@ -47,7 +47,7 @@ public final class SecuredDataExtension
    }
 
    /*******************************************************************************
-    ** Called reflectively by the producer.
+    ** Register directly with the middleware extension catalog.
     *******************************************************************************/
    public static void register(QInstance instance)
    {

@@ -27,8 +27,8 @@ import java.util.Locale;
 import java.util.Map;
 import com.kingsrook.qbits.secureddata.metadata.SecuredDataTableCustomizers;
 import com.kingsrook.qbits.secureddata.metadata.SecuredDataTables;
-import com.kingsrook.qbits.secureddata.standin.DataClassification;
-import com.kingsrook.qbits.secureddata.support.CoreMetadataBridge;
+import com.kingsrook.qbits.secureddata.support.SecuredDataMetadata;
+import com.kingsrook.qqq.backend.core.actions.ai.DataClassification;
 import com.kingsrook.qqq.backend.core.actions.customizers.TableCustomizers;
 import com.kingsrook.qqq.backend.core.exceptions.QException;
 import com.kingsrook.qqq.backend.core.model.metadata.MetaDataProducerMultiOutput;
@@ -153,21 +153,26 @@ public class SecuredDataQBitProducer implements QBitMetaDataProducer<SecuredData
       output.add(com.kingsrook.qbits.secureddata.app.SecuredDataApp.app(tables));
       output.add(com.kingsrook.qbits.secureddata.app.SecuredDataApp.widget());
       com.kingsrook.qbits.secureddata.processes.BreakGlassProcesses.processes(qBitConfig).forEach(output::add);
+      com.kingsrook.qbits.secureddata.retention.WipeProcesses.processes(qBitConfig).forEach(output::add);
+      output.add(com.kingsrook.qbits.secureddata.retention.RetentionWidgets.backups());
+      output.add(com.kingsrook.qbits.secureddata.retention.RetentionWidgets.markersJoin());
+      output.add(com.kingsrook.qbits.secureddata.retention.RetentionWidgets.markers());
       output.add(SecuredDataTables.revealsJoin());
       output.add(SecuredDataTables.revealsWidget());
+      output.add(new com.kingsrook.qqq.backend.core.model.metadata.security.QSecurityKeyType().withName(com.kingsrook.qbits.secureddata.metadata.RetentionTables.KEY_LOCK));
       output.addSelfToInstance(qInstance);
-      CoreMetadataBridge.register(qInstance);
-      com.kingsrook.qbits.secureddata.support.UiApiBridge.register(qInstance);
+      SecuredDataMetadata.register(qInstance);
+      com.kingsrook.qbits.secureddata.uiapi.SecuredDataExtension.register(qInstance);
       if(qBitConfig.getNameHeuristics())
       {
          seedHeuristics(qInstance);
       }
-      CoreMetadataBridge.promoteClassifications(qInstance);
       SecuredDataRuntime runtime = new SecuredDataRuntime(qInstance, qBitConfig);
       runtime.addSelfToInstance(qInstance);
       try
       {
          CoreFieldAccessBridge.register(qInstance, runtime.resolver());
+         CoreAuditBridge.register(qInstance, runtime);
       }
       catch(RuntimeException e)
       {
@@ -192,18 +197,18 @@ public class SecuredDataQBitProducer implements QBitMetaDataProducer<SecuredData
          }
          for(QFieldMetaData field : table.getFields().values())
          {
-            if(CoreMetadataBridge.classification(table, field) != null || CoreMetadataBridge.classification(table, null) != null)
+            if(SecuredDataMetadata.classification(table, field) != null || SecuredDataMetadata.classification(table, null) != null)
             {
                continue;
             }
             String name = field.getName().toLowerCase(Locale.ROOT);
             if(name.startsWith("diagnosis"))
             {
-               CoreMetadataBridge.classifyField(field, DataClassification.PHI);
+               SecuredDataMetadata.classifyField(field, DataClassification.PHI);
             }
             else if(List.of("ssn", "dob", "date_of_birth", "email", "phone").contains(name))
             {
-               CoreMetadataBridge.classifyField(field, DataClassification.PII);
+               SecuredDataMetadata.classifyField(field, DataClassification.PII);
             }
          }
       }

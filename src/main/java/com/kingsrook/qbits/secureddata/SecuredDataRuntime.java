@@ -39,6 +39,7 @@ public class SecuredDataRuntime implements QSupplementalInstanceMetaData, AutoCl
    private final AtomicLong policyVersion = new AtomicLong(STARTUP_VERSION.incrementAndGet());
    private final transient SecuredDataQBitConfig config;
    private final transient SecuredDataResolver resolver;
+   private final transient SecuredDataKeySource keys = new SecuredDataKeySource();
    private final transient SecuredDataAccessLogger logger;
    private final transient SecuredDataAnomalies anomalies;
    private transient long cachedClassificationVersion;
@@ -173,6 +174,7 @@ public class SecuredDataRuntime implements QSupplementalInstanceMetaData, AutoCl
    @Override
    public void close()
    {
+      keys.close();
       logger.close();
    }
 
@@ -182,5 +184,13 @@ public class SecuredDataRuntime implements QSupplementalInstanceMetaData, AutoCl
    public SecuredDataAnomalies anomalies()
    {
       return (anomalies);
+   }
+
+   /*******************************************************************************
+    ** Instance-scoped audit keys.
+    *******************************************************************************/
+   public SecuredDataKeySource keys()
+   {
+      return (keys);
    }
 }

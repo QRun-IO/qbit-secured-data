@@ -106,7 +106,7 @@ public final class SystemWrites
    {
       try
       {
-         return (call(() -> new QueryAction().execute(new QueryInput(table).withFilter(filter)).getRecords()));
+         return (call(() -> new QueryAction().execute(new QueryInput(table).withFilter(filter).withTransaction(QContext.getQBackendTransaction())).getRecords()));
       }
       catch(QException e)
       {

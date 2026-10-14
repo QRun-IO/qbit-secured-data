@@ -23,8 +23,8 @@ package com.kingsrook.qbits.secureddata;
 
 import java.util.Collection;
 import java.util.Objects;
-import com.kingsrook.qbits.secureddata.standin.DataClassification;
-import com.kingsrook.qbits.secureddata.support.CoreMetadataBridge;
+import com.kingsrook.qbits.secureddata.support.SecuredDataMetadata;
+import com.kingsrook.qqq.backend.core.actions.ai.DataClassification;
 import com.kingsrook.qqq.backend.core.model.data.QRecord;
 import com.kingsrook.qqq.backend.core.model.metadata.fields.QFieldMetaData;
 import com.kingsrook.qqq.backend.core.model.metadata.tables.QTableMetaData;
@@ -55,8 +55,8 @@ public final class SecuredDataClassifications
          return (DataClassification.valueOf(row.getValueString("classification")));
       }
       QFieldMetaData field = table.getField(fieldName);
-      DataClassification classification = field == null ? null : CoreMetadataBridge.classification(table, field);
-      return (classification == null ? CoreMetadataBridge.classification(table, null) : classification);
+      DataClassification classification = field == null ? null : SecuredDataMetadata.classification(table, field);
+      return (classification == null ? SecuredDataMetadata.classification(table, null) : classification);
    }
 
 
@@ -67,7 +67,7 @@ public final class SecuredDataClassifications
    public static DataClassification effective(QTableMetaData table)
    {
       QRecord row = row(table, null);
-      return (row == null ? CoreMetadataBridge.classification(table, null) : DataClassification.valueOf(row.getValueString("classification")));
+      return (row == null ? SecuredDataMetadata.classification(table, null) : DataClassification.valueOf(row.getValueString("classification")));
    }
 
 
@@ -125,5 +125,13 @@ public final class SecuredDataClassifications
          }
       }
       return (tableRow);
+   }
+
+   /*******************************************************************************
+    ** Shared phase-b entropy guardrail, including runtime overrides.
+    *******************************************************************************/
+   public static boolean lowEntropy(QTableMetaData table, String field)
+   {
+      return (SecuredDataResolver.lowCardinality(table.getField(field), row(table, field)));
    }
 }
