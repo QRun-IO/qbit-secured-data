@@ -41,7 +41,7 @@ public class SecuredDataStatusSpecV1 extends AbstractJsonEndpointSpec
    public BasicOperation defineBasicOperation()
    {
       return (new BasicOperation().withPath("/qbit/secured-data/status").withHttpMethod(HttpMethod.GET)
-         .withTag(() -> "Secured data").withShortSummary("Status"));
+         .withTag(() -> "secured-data").withShortSummary("Status"));
    }
 
    /*******************************************************************************

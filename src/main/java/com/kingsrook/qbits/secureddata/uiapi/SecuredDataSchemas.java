@@ -58,7 +58,8 @@ public final class SecuredDataSchemas
       schemas.put("SecuredDataRevealAllowanceV1", object("tableName", type(Type.STRING), "fieldName", type(Type.STRING), "remainingDailyAllowance", type(Type.INTEGER).withNullable(true)));
       schemas.put("SecuredDataStatusResponseV1", object("breakGlass", new Schema().withRefToSchema("SecuredDataBreakGlassV1").withNullable(true),
          "revealsUsedToday", type(Type.INTEGER), "revealAllowances", type(Type.ARRAY).withItems(new Schema().withRefToSchema("SecuredDataRevealAllowanceV1"))));
-      schemas.put("SecuredDataErrorV1", object("error", type(Type.STRING)));
+      schemas.put("SecuredDataErrorV1", object("error", type(Type.STRING))
+         .withDescription("Deprecated since 1.1.0: errors use BasicErrorResponseV1."));
       return (schemas);
    }
 

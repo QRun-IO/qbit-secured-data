@@ -28,6 +28,7 @@ import com.kingsrook.qbits.secureddata.reveal.RevealService;
 import com.kingsrook.qqq.backend.core.exceptions.QBadRequestException;
 import com.kingsrook.qqq.middleware.javalin.specs.BasicOperation;
 import com.kingsrook.qqq.middleware.javalin.specs.extensions.AbstractJsonEndpointSpec;
+import com.kingsrook.qqq.middleware.javalin.specs.v1.responses.BasicErrorResponseV1;
 import com.kingsrook.qqq.openapi.model.HttpMethod;
 import com.kingsrook.qqq.openapi.model.Parameter;
 import com.kingsrook.qqq.openapi.model.Schema;
@@ -44,7 +45,7 @@ public class SecuredDataRevealSpecV1 extends AbstractJsonEndpointSpec
    public BasicOperation defineBasicOperation()
    {
       return (new BasicOperation().withPath("/qbit/secured-data/reveal").withHttpMethod(HttpMethod.POST)
-         .withTag(() -> "Secured data").withShortSummary("Reveal"));
+         .withTag(() -> "secured-data").withShortSummary("Reveal"));
    }
 
    /*******************************************************************************
@@ -81,10 +82,10 @@ public class SecuredDataRevealSpecV1 extends AbstractJsonEndpointSpec
    @Override
    public List<com.kingsrook.qqq.middleware.javalin.specs.BasicResponse> defineAdditionalBasicResponses()
    {
-      return (List.of(new com.kingsrook.qqq.middleware.javalin.specs.BasicResponse(io.javalin.http.HttpStatus.BAD_REQUEST, "Invalid reveal request", "SecuredDataErrorV1"),
-         new com.kingsrook.qqq.middleware.javalin.specs.BasicResponse(io.javalin.http.HttpStatus.FORBIDDEN, "Reveal denied", "SecuredDataErrorV1"),
-         new com.kingsrook.qqq.middleware.javalin.specs.BasicResponse(io.javalin.http.HttpStatus.NOT_FOUND, "Record not found or locked", "SecuredDataErrorV1"),
-         new com.kingsrook.qqq.middleware.javalin.specs.BasicResponse(io.javalin.http.HttpStatus.TOO_MANY_REQUESTS, "Daily reveal cap reached", "SecuredDataErrorV1")));
+      return (List.of(new com.kingsrook.qqq.middleware.javalin.specs.BasicResponse(io.javalin.http.HttpStatus.BAD_REQUEST, "Invalid reveal request", BasicErrorResponseV1.class.getSimpleName()),
+         new com.kingsrook.qqq.middleware.javalin.specs.BasicResponse(io.javalin.http.HttpStatus.FORBIDDEN, "Reveal denied", BasicErrorResponseV1.class.getSimpleName()),
+         new com.kingsrook.qqq.middleware.javalin.specs.BasicResponse(io.javalin.http.HttpStatus.NOT_FOUND, "Record not found or locked", BasicErrorResponseV1.class.getSimpleName()),
+         new com.kingsrook.qqq.middleware.javalin.specs.BasicResponse(io.javalin.http.HttpStatus.TOO_MANY_REQUESTS, "Daily reveal cap reached", BasicErrorResponseV1.class.getSimpleName())));
    }
 
    /*******************************************************************************

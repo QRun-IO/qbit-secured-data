@@ -37,11 +37,11 @@ public final class SecuredDataExtension
    }
 
    /*******************************************************************************
-    ** The secured-data UI API, version 1.0.0.
+    ** The secured-data UI API, version 1.1.0.
     *******************************************************************************/
    public static MiddlewareSpecExtension defineExtension()
    {
-      return (new MiddlewareSpecExtension().withName("secured-data").withSemanticVersion("1.0.0")
+      return (new MiddlewareSpecExtension().withName("secured-data").withSemanticVersion("1.1.0")
          .withDescription("Reveal grants and break-glass status")
          .withSpec(SecuredDataRevealSpecV1.class).withSpec(SecuredDataRevealOptionsSpecV1.class).withSpec(SecuredDataStatusSpecV1.class));
    }

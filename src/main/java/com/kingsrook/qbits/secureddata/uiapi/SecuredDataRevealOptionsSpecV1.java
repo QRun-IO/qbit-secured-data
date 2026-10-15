@@ -41,7 +41,7 @@ public class SecuredDataRevealOptionsSpecV1 extends AbstractJsonEndpointSpec
    public BasicOperation defineBasicOperation()
    {
       return (new BasicOperation().withPath("/qbit/secured-data/reveal/options").withHttpMethod(HttpMethod.GET)
-         .withTag(() -> "Secured data").withShortSummary("RevealOptions"));
+         .withTag(() -> "secured-data").withShortSummary("RevealOptions"));
    }
 
    /*******************************************************************************
