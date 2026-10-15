@@ -22,8 +22,8 @@
 <project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
 
    <properties>
-      <!-- QQQ 4.1.0-RC.14 ships UI API 1.6.0, field access and audit value protection -->
-      <qqq.snapshot.version>4.1.0-RC.14</qqq.snapshot.version>
+      <!-- QQQ 4.1.0-RC.15 ships UI API 1.6.0, field access and audit value protection -->
+      <qqq.snapshot.version>4.1.0-RC.15</qqq.snapshot.version>
       <revision>0.1.0-SNAPSHOT</revision>
       <maven.compiler.source>21</maven.compiler.source>
       <maven.compiler.target>21</maven.compiler.target>
