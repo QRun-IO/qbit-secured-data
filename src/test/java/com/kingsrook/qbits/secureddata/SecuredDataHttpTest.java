@@ -109,11 +109,25 @@ class SecuredDataHttpTest
       var status = request("/qbit/secured-data/status", null, false);
       assertThat(status.statusCode()).as(status.body()).isEqualTo(200);
       assertThat(new JSONObject(status.body()).getInt("revealsUsedToday")).isEqualTo(1);
-      assertThat(request("/qbit/secured-data/reveal", body, false).statusCode()).isEqualTo(429);
-      assertThat(request("/qbit/secured-data/reveal", body, true).statusCode()).isEqualTo(403);
-      assertThat(request("/qbit/secured-data/reveal", "{}", false).statusCode()).isEqualTo(400);
-      assertThat(request("/qbit/secured-data/reveal", "{\"primaryKey\":1}", false).statusCode()).isEqualTo(400);
-      assertThat(request("/qbit/secured-data/reveal/options?tableName=person&fieldName=missing", null, false).statusCode()).isEqualTo(404);
+      assertErrorResponse(request("/qbit/secured-data/reveal", body, false), 429);
+      assertErrorResponse(request("/qbit/secured-data/reveal", body, true), 403);
+      assertErrorResponse(request("/qbit/secured-data/reveal", "{}", false), 400);
+      assertErrorResponse(request("/qbit/secured-data/reveal", "{\"primaryKey\":1}", false), 400);
+      assertErrorResponse(request("/qbit/secured-data/reveal/options?tableName=person&fieldName=missing", null, false), 404);
+   }
+
+   /*******************************************************************************
+    ** Verify standard error bodies without changing endpoint status semantics.
+    *******************************************************************************/
+   private void assertErrorResponse(HttpResponse<String> response, int status)
+   {
+      assertThat(response.statusCode()).as(response.body()).isEqualTo(status);
+      JSONObject body = new JSONObject(response.body());
+      assertThat(body.keySet()).contains("error", "code", "message", "traceId");
+      assertThat(body.getString("error")).isNotBlank();
+      assertThat(body.getString("code")).isNotBlank();
+      assertThat(body.getString("message")).isNotBlank();
+      assertThat(body.getString("traceId")).isNotBlank();
    }
 
    @Test

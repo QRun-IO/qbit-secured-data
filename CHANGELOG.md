@@ -4,6 +4,9 @@ All notable changes are documented here, following [Keep a Changelog](https://ke
 
 ## [Unreleased]
 
+### Changed: UI API 1.6.0
+- UI API extension secured-data 1.1.0 (requires QQQ 4.1.0-RC.14, UI API 1.6.0): operationIds, standard error responses with BasicErrorResponseV1, extension tags, and retained SecuredDataErrorV1 schema deprecated since 1.1.0.
+
 ### Changed — direct core field access and audit protection
 - Remove all #1172/#1182 stand-ins and reflective bridges; use core field-access, classified-value token, audit protection, wipe flag and shredded-event APIs directly.
 - Register the resolver, key source and audit protector through core supplemental metadata.
