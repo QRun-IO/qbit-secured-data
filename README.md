@@ -4,7 +4,7 @@ Phases (b), (c), (e) and (f) of [SECURED-DATA](https://github.com/QRun-IO/qqq/bl
 
 ## Compatibility
 
-Java 21, Maven wrapper 3.9.11, and **QQQ 4.1.0-RC.7** or later (it ships field access #1172 and audit value protection #1182).
+Java 21, Maven wrapper 3.9.11, and **QQQ 4.1.0-RC.15** or later (UI API 1.6.0, field access #1172 and audit value protection #1182).
 
 Core classifications, AI metadata, client channels, table-feature permissions and UI API extension points are used directly. The UI API and its contract test are part of the main build; the contract test calls `UiApiContract` directly.
 
@@ -121,7 +121,7 @@ Configure `.withSchedulerName("yourScheduler")` to register the hidden `secured_
 
 ## UI API extension
 
-The `secured-data` extension is version **1.0.0**:
+The `secured-data` extension is version **1.1.0**:
 
 - `POST /qqq/v1/qbit/secured-data/reveal`
 - `GET /qqq/v1/qbit/secured-data/reveal/options?tableName=&fieldName=`
