@@ -84,13 +84,23 @@ class RetentionProofTest
 
 
 
+   private static final String CANARY_PREFIX     = "CANARY-PHI-";
+   private static final int    CANARY_RANDOM     = 24;
+   private static final int    MIN_LEAK_FRAGMENT = 12;
+
+
+
    /*******************************************************************************
-    ** Letters g-v only, so a marker can never coincide with hex digests or tokens.
+    ** A fixed prefix and 24 random letters g-v (so it never coincides with hex
+    ** digests). Leaks are matched on the whole marker or on 12-letter windows of
+    ** its random part: 16^12 possibilities, so ordinary text, JSON words or
+    ** base64 tokens cannot match by chance, while a truncated or re-encoded
+    ** fragment of a real leak still does.
     *******************************************************************************/
    private static String canary()
    {
-      StringBuilder marker = new StringBuilder("CANARY-PHI-");
-      for(int i = 0; i < 16; i++)
+      StringBuilder marker = new StringBuilder(CANARY_PREFIX);
+      for(int i = 0; i < CANARY_RANDOM; i++)
       {
          marker.append((char) ('g' + RANDOM.nextInt(16)));
       }
@@ -100,25 +110,46 @@ class RetentionProofTest
 
 
    /*******************************************************************************
-    ** The marker, or any substring of it longer than four characters.
+    ** The whole marker, or any MIN_LEAK_FRAGMENT-letter window of its random part.
     *******************************************************************************/
    private static List<String> leaks(String haystack, String... markers)
    {
       List<String> found = new ArrayList<>();
       for(String marker : markers)
       {
-         for(int length = 5; length <= marker.length(); length++)
+         if(haystack.contains(marker))
          {
-            for(int start = 0; start + length <= marker.length(); start++)
+            found.add("whole marker");
+            continue;
+         }
+
+         String random = marker.substring(CANARY_PREFIX.length());
+         for(int start = 0; start + MIN_LEAK_FRAGMENT <= random.length(); start++)
+         {
+            if(haystack.contains(random.substring(start, start + MIN_LEAK_FRAGMENT)))
             {
-               if(haystack.contains(marker.substring(start, start + length)))
-               {
-                  found.add("length " + length + " at " + start);
-               }
+               found.add("fragment at " + start);
             }
          }
       }
       return (found);
+   }
+
+
+
+   /*******************************************************************************
+    ** The leak scan: whole markers and 12-letter fragments are found; the shared
+    ** prefix and ordinary words made of the same letters are not.
+    *******************************************************************************/
+   @Test
+   void leakScanHasNoFalsePositives()
+   {
+      String marker = canary();
+      String random = marker.substring(CANARY_PREFIX.length());
+      assertThat(leaks("x" + marker + "x", marker)).containsExactly("whole marker");
+      assertThat(leaks("{\"v\":\"" + random.substring(5, 5 + MIN_LEAK_FRAGMENT) + "\"}", marker)).isNotEmpty();
+      assertThat(leaks(CANARY_PREFIX + " options joins strings rows points", marker)).isEmpty();
+      assertThat(leaks(random.substring(0, MIN_LEAK_FRAGMENT - 1), marker)).isEmpty();
    }
 
 
