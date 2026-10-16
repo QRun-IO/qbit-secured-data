@@ -101,7 +101,7 @@ Policy/break-glass caches are bounded per instance and keyed by relevant user pe
 
 The extra `search_value_fingerprints` TEXT column persists JSON arrays of HMAC-SHA256 fingerprints for distinct-value detection after restarts and across nodes. Use a shared secret key supplier on multi-node deployments; the default is a random per-JVM key, so historical fingerprints from another JVM/key cannot be compared reliably.
 
-One daemon worker drains a bounded queue as a system session. Enqueueing does not wait for persistence. Full queues and failed writes warn without values and increment `getDroppedCount()`. The app can expose this counter later. Explicitly call the instance's `SecuredDataRuntime.close()` at host shutdown; a JVM shutdown hook also drains accepted rows. An abrupt process crash can lose queued rows.
+One daemon worker drains a bounded queue as a system session. Enqueueing does not wait for persistence. Full queues and failed writes warn without values and increment `getDroppedCount()`. The app can expose this counter later. Explicitly call the instance's `SecuredDataRuntime.close()` at host shutdown; a JVM shutdown hook also drains accepted rows unless `withRegisterShutdownHook(false)` turns it off (hosts that close the runtime themselves). Neither the worker nor the hook holds the instance strongly: an instance the host drops (tests, reloads) can be collected, and its worker stops at the next tick. An abrupt process crash can lose queued rows.
 
 Flagged rows raise the optional alerts producer signal `secured_data.enumeration`, deduplicated by `secured_data.enumeration:<user>:<table>.<field>:<UTC date>`. RC.5 already provides `QAlerts`; without an installed sink it logs the signal. Its catalog validator rejects underscores in type names, so this mandated type is sent through the producer without catalog registration until that core restriction is reconciled. No values or fingerprints are sent to the alert sink.
 
@@ -144,6 +144,7 @@ The classification field picker uses CUSTOM possible values, reading `table_name
 | `withFingerprintKeySupplier(Supplier<byte[]>)` | Random 32-byte JVM key; supplied key must be at least 16 bytes |
 | `withAccessLogQueueCapacity(int)` | 4096 rows |
 | `withAccessLogFlushIntervalMillis(long)` | 250 ms |
+| `withRegisterShutdownHook(boolean)` | true; JVM hook that drains the access log at shutdown |
 | `withExactMatchPerHour(int)` | 20; zero disables |
 | `withMissAlertConsecutive(int)` | 5; zero disables |
 | `withDistinctValueAlert(int)` | 15; zero disables |

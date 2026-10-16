@@ -115,6 +115,7 @@ public class SecuredDataQBitConfig implements QBitConfig
    private Clock clock = Clock.systemUTC();
    private int accessLogQueueCapacity = 4096;
    private long accessLogFlushIntervalMillis = 250;
+   private boolean registerShutdownHook = true;
    private int exactMatchPerHour = 20;
    private int missAlertConsecutive = 5;
    private int distinctValueAlert = 15;
@@ -212,6 +213,29 @@ public class SecuredDataQBitConfig implements QBitConfig
    public long getAccessLogFlushIntervalMillis()
    {
       return (accessLogFlushIntervalMillis);
+   }
+
+
+
+   /*******************************************************************************
+    ** Whether the access logger registers a JVM shutdown hook that drains
+    ** accepted rows (default true). Hosts that call SecuredDataRuntime.close()
+    ** from their own shutdown sequence turn it off.
+    *******************************************************************************/
+   public boolean getRegisterShutdownHook()
+   {
+      return (registerShutdownHook);
+   }
+
+
+
+   /*******************************************************************************
+    ** Configure registerShutdownHook.
+    *******************************************************************************/
+   public SecuredDataQBitConfig withRegisterShutdownHook(boolean registerShutdownHook)
+   {
+      this.registerShutdownHook = registerShutdownHook;
+      return (this);
    }
 
 

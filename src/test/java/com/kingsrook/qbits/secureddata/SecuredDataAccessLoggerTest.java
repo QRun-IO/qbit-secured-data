@@ -22,6 +22,7 @@ package com.kingsrook.qbits.secureddata;
 
 
 import java.io.Serializable;
+import java.lang.ref.WeakReference;
 import java.time.Instant;
 import java.util.ArrayList;
 import java.util.List;
@@ -386,5 +387,66 @@ class SecuredDataAccessLoggerTest
       {
          idle.close();
       }
+   }
+
+
+   /*******************************************************************************
+    ** Neither the worker thread nor the JVM shutdown hook keeps a discarded
+    ** instance alive: a host or test that drops its instance without closing
+    ** the runtime lets it be collected.
+    *******************************************************************************/
+   @Test
+   void aDiscardedInstanceCanBeCollected() throws Exception
+   {
+      close();
+      WeakReference<QInstance> discarded = discardedInstance();
+      long deadline = System.nanoTime() + TimeUnit.SECONDS.toNanos(10);
+      List<byte[]> pressure = new ArrayList<>();
+      while(discarded.get() != null && System.nanoTime() < deadline)
+      {
+         pressure.add(new byte[1 << 20]);
+         if(pressure.size() > 64)
+         {
+            pressure.clear();
+         }
+         System.gc();
+         Thread.sleep(20);
+      }
+      assertThat(discarded.get()).as("instance still reachable from the access logger").isNull();
+   }
+
+
+
+   /*******************************************************************************
+    ** Build, use and drop an instance whose worker ticks every 10 ms.
+    *******************************************************************************/
+   private static WeakReference<QInstance> discardedInstance() throws Exception
+   {
+      QInstance instance = SecuredDataTestSupport.base();
+      instance.addBackend(new com.kingsrook.qqq.backend.core.model.metadata.QBackendMetaData().withName("memory")
+         .withBackendType(com.kingsrook.qqq.backend.core.modules.backend.implementations.memory.MemoryBackendModule.class));
+      instance.addTable(person("memory"));
+      new SecuredDataQBitProducer().withQBitConfig(new SecuredDataQBitConfig().withAccessLogFlushIntervalMillis(10)).produce(instance);
+      Thread.sleep(50);
+      QContext.clear();
+      return (new WeakReference<>(instance));
+   }
+
+
+
+   /*******************************************************************************
+    ** Hosts that close the runtime themselves can skip the JVM hook; close
+    ** still drains and stops the worker.
+    *******************************************************************************/
+   @Test
+   void shutdownHookIsOptional() throws Exception
+   {
+      setup(config -> config.withRegisterShutdownHook(false));
+      var logger = SecuredDataRuntime.current().logger();
+      assertThat(logger.isWorkerRunning()).isTrue();
+      logger.onAccess(event(FieldAccessEventType.VIEW, null, null));
+      logger.close();
+      assertThat(logger.isWorkerRunning()).isFalse();
+      assertThat(logs()).hasSize(1);
    }
 }
