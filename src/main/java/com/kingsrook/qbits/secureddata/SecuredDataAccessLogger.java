@@ -21,6 +21,7 @@
 package com.kingsrook.qbits.secureddata;
 
 
+import java.lang.ref.WeakReference;
 import java.time.Instant;
 import java.time.temporal.ChronoUnit;
 import java.util.ArrayDeque;
@@ -90,7 +91,12 @@ public class SecuredDataAccessLogger implements AutoCloseable
 
 
    /*******************************************************************************
-    ** One daemon drains this instance's queue; the JVM hook flushes on shutdown.
+    ** One daemon drains this instance's queue; the optional JVM hook flushes on
+    ** shutdown. Neither holds the logger strongly: once the host drops its
+    ** instance (a test, a reloaded instance), the logger, runtime and instance
+    ** can be collected, and the worker stops at its next tick. Hosts that close
+    ** the runtime themselves can turn the hook off
+    ** (SecuredDataQBitConfig.withRegisterShutdownHook(false)).
     *******************************************************************************/
    public SecuredDataAccessLogger(QInstance instance, SecuredDataRuntime runtime)
    {
@@ -103,10 +109,69 @@ public class SecuredDataAccessLogger implements AutoCloseable
          thread.setDaemon(true);
          return (thread);
       });
+      WeakReference<SecuredDataAccessLogger> self = new WeakReference<>(this);
       long interval = runtime.config().getAccessLogFlushIntervalMillis();
-      worker.scheduleWithFixedDelay(this::scheduledFlush, interval, interval, TimeUnit.MILLISECONDS);
-      shutdownHook = new Thread(this::close, "secured-data-access-log-shutdown");
-      Runtime.getRuntime().addShutdownHook(shutdownHook);
+      worker.scheduleWithFixedDelay(new WeakTick(self, worker), interval, interval, TimeUnit.MILLISECONDS);
+      shutdownHook = runtime.config().getRegisterShutdownHook() ? new Thread(new WeakClose(self), "secured-data-access-log-shutdown") : null;
+      if(shutdownHook != null)
+      {
+         Runtime.getRuntime().addShutdownHook(shutdownHook);
+      }
+   }
+
+
+
+   /*******************************************************************************
+    ** The worker's task, holding the logger weakly: when the logger has been
+    ** collected the worker shuts itself down.
+    *******************************************************************************/
+   private record WeakTick(WeakReference<SecuredDataAccessLogger> logger, ScheduledExecutorService worker) implements Runnable
+   {
+      /*******************************************************************************
+       ** Drain, or stop once the logger is gone.
+       *******************************************************************************/
+      @Override
+      public void run()
+      {
+         SecuredDataAccessLogger target = logger.get();
+         if(target == null)
+         {
+            worker.shutdown();
+            return;
+         }
+         target.scheduledFlush();
+      }
+   }
+
+
+
+   /*******************************************************************************
+    ** The JVM shutdown hook, holding the logger weakly.
+    *******************************************************************************/
+   private record WeakClose(WeakReference<SecuredDataAccessLogger> logger) implements Runnable
+   {
+      /*******************************************************************************
+       ** Drain accepted rows at JVM shutdown, if the logger still exists.
+       *******************************************************************************/
+      @Override
+      public void run()
+      {
+         SecuredDataAccessLogger target = logger.get();
+         if(target != null)
+         {
+            target.close();
+         }
+      }
+   }
+
+
+
+   /*******************************************************************************
+    ** Whether the background worker is still running (false after close).
+    *******************************************************************************/
+   public boolean isWorkerRunning()
+   {
+      return (!worker.isShutdown());
    }
 
 
@@ -488,7 +553,7 @@ public class SecuredDataAccessLogger implements AutoCloseable
       }
       worker.shutdown();
       flush();
-      if(Thread.currentThread() != shutdownHook)
+      if(shutdownHook != null && Thread.currentThread() != shutdownHook)
       {
          try
          {
