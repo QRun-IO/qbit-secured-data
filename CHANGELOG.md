@@ -4,6 +4,12 @@ All notable changes are documented here, following [Keep a Changelog](https://ke
 
 ## [Unreleased]
 
+### Fixed: access-log lifecycle
+- The access-log worker and JVM shutdown hook hold the logger weakly, so an instance the host drops (tests, reloads) can be collected; its worker stops at the next tick.
+- `withRegisterShutdownHook(false)` for hosts that call `SecuredDataRuntime.close()` themselves; `SecuredDataAccessLogger.isWorkerRunning()`.
+- Virtual (computed) fields resolve through the table classification instead of throwing (#18).
+- Idle access-log ticks open no context, so the worker never validates an unfinished host instance, and a failed tick no longer stops the worker (#18).
+
 ### Changed: UI API 1.6.0
 - UI API extension secured-data 1.1.0 (requires QQQ 4.1.0-RC.15, UI API 1.6.0): operationIds, standard error responses with BasicErrorResponseV1, extension tags, and retained SecuredDataErrorV1 schema deprecated since 1.1.0.
 
