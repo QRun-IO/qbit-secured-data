@@ -104,7 +104,7 @@ public class SecuredDataAccessLogger implements AutoCloseable
          return (thread);
       });
       long interval = runtime.config().getAccessLogFlushIntervalMillis();
-      worker.scheduleWithFixedDelay(this::flush, interval, interval, TimeUnit.MILLISECONDS);
+      worker.scheduleWithFixedDelay(this::scheduledFlush, interval, interval, TimeUnit.MILLISECONDS);
       shutdownHook = new Thread(this::close, "secured-data-access-log-shutdown");
       Runtime.getRuntime().addShutdownHook(shutdownHook);
    }
@@ -333,12 +333,37 @@ public class SecuredDataAccessLogger implements AutoCloseable
 
 
    /*******************************************************************************
+    ** The worker's tick. An exception would cancel every later run of a
+    ** scheduled task, so a failed drain is logged (value-free) and retried on
+    ** the next tick; the rows stay queued.
+    *******************************************************************************/
+   void scheduledFlush()
+   {
+      try
+      {
+         flush();
+      }
+      catch(RuntimeException e)
+      {
+         LOG.warn("Unable to drain the secured-data access log; retrying on the next tick");
+      }
+   }
+
+
+
+   /*******************************************************************************
     ** Drain safely both from the worker and explicit test/host shutdown calls.
+    ** An empty queue opens no context: QContext validates an unvalidated
+    ** instance, and the worker starts while the host is still building it.
     *******************************************************************************/
    public void flush()
    {
       synchronized(flushLock)
       {
+         if(queue.isEmpty())
+         {
+            return;
+         }
          QContext.withTemporaryContext(new CapturedContext(instance, new QSystemUserSession(instance)), () ->
          {
             PendingLog pending;

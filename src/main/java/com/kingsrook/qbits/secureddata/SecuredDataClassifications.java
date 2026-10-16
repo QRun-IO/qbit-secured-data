@@ -54,7 +54,11 @@ public final class SecuredDataClassifications
       {
          return (DataClassification.valueOf(row.getValueString("classification")));
       }
-      QFieldMetaData field = table.getField(fieldName);
+      ////////////////////////////////////////////////////////////////////
+      // getFields, not getField: a virtual field is not in the map and  //
+      // getField throws, while it still takes the table classification //
+      ////////////////////////////////////////////////////////////////////
+      QFieldMetaData field = table.getFields() == null || fieldName == null ? null : table.getFields().get(fieldName);
       DataClassification classification = field == null ? null : SecuredDataMetadata.classification(table, field);
       return (classification == null ? SecuredDataMetadata.classification(table, null) : classification);
    }
