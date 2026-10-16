@@ -46,6 +46,7 @@ import com.kingsrook.qqq.backend.core.exceptions.QPermissionDeniedException;
 import com.kingsrook.qqq.backend.core.model.data.QRecord;
 import com.kingsrook.qqq.backend.core.model.metadata.QInstance;
 import com.kingsrook.qqq.backend.core.model.metadata.code.QCodeReference;
+import com.kingsrook.qqq.backend.core.model.metadata.tables.QTableMetaData;
 import com.kingsrook.qqq.backend.core.utils.JsonUtils;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.Test;
@@ -357,6 +358,33 @@ class SecuredDataAccessLoggerTest
        *******************************************************************************/
       public void heartbeat(String key, Instant at)
       {
+      }
+   }
+
+
+   /*******************************************************************************
+    ** The worker starts while the host is still building its instance. An idle
+    ** tick opens no context, so it never validates (or enriches) an unfinished
+    ** instance on the worker thread, and a failing tick is logged instead of
+    ** cancelling every later tick.
+    *******************************************************************************/
+   @Test
+   void idleTicksNeverValidateAnUnfinishedInstance() throws Exception
+   {
+      setup();
+      SecuredDataRuntime runtime = SecuredDataRuntime.current();
+      QInstance unfinished = SecuredDataTestSupport.base();
+      unfinished.addTable(new QTableMetaData().withName("unfinished").withBackendName("not_registered_yet"));
+      SecuredDataAccessLogger idle = new SecuredDataAccessLogger(unfinished, runtime);
+      try
+      {
+         idle.flush();
+         idle.scheduledFlush();
+         assertThat(unfinished.getHasBeenValidated()).isFalse();
+      }
+      finally
+      {
+         idle.close();
       }
    }
 }

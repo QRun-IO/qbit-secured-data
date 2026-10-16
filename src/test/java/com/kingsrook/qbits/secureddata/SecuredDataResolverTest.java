@@ -33,6 +33,7 @@ import com.kingsrook.qqq.backend.core.context.QContext;
 import com.kingsrook.qqq.backend.core.model.data.QRecord;
 import com.kingsrook.qqq.backend.core.model.metadata.fields.QFieldMetaData;
 import com.kingsrook.qqq.backend.core.model.metadata.fields.QFieldType;
+import com.kingsrook.qqq.backend.core.model.metadata.fields.QVirtualFieldMetaData;
 import com.kingsrook.qqq.backend.core.model.metadata.tables.QTableMetaData;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
@@ -325,5 +326,23 @@ class SecuredDataResolverTest
       assertThat(resolver.isRevealActive("person", "email", 8)).isFalse();
       CLOCK.now = NOW.plusSeconds(10);
       assertThat(resolver.isRevealActive("person", "email", 7)).isFalse();
+   }
+
+
+   /*******************************************************************************
+    ** A virtual (computed) field is not in getFields, and getField throws for
+    ** it: it resolves through the table classification instead of failing the
+    ** whole read.
+    *******************************************************************************/
+   @Test
+   void virtualFieldsTakeTheTableClassification() throws Exception
+   {
+      QVirtualFieldMetaData display = new QVirtualFieldMetaData("displayName", QFieldType.STRING);
+      person.withVirtualFields(List.of(display));
+      assertThat(SecuredDataClassifications.effective(person, "displayName")).isNull();
+      assertThat(resolver.resolve(person, display).tier()).isEqualTo(FieldAccessTier.FULL);
+      person.withSupplementalMetaData(new AiTableMetaData().withClassification(DataClassification.PII));
+      assertThat(SecuredDataClassifications.effective(person, "displayName")).isEqualTo(DataClassification.PII);
+      assertThat(resolver.resolve(person, display).tier()).isEqualTo(FieldAccessTier.MASKED);
    }
 }
